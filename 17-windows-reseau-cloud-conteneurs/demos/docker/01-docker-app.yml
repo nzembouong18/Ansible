@@ -1,0 +1,53 @@
+---
+# Nécessite Docker sur la cible + collection community.docker (+ pip: docker)
+- name: Déployer une application avec Docker
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    app_image: nginx:1.27-alpine
+    app_port: 8088
+  tasks:
+    - name: Réseau applicatif
+      community.docker.docker_network:
+        name: formation_net
+
+    - name: Volume de données
+      community.docker.docker_volume:
+        name: formation_data
+
+    - name: Télécharger l'image
+      community.docker.docker_image:
+        name: "{{ app_image }}"
+        source: pull
+
+    - name: Lancer le conteneur
+      community.docker.docker_container:
+        name: formation_web
+        image: "{{ app_image }}"
+        state: started
+        restart_policy: unless-stopped
+        networks: [{ name: formation_net }]
+        published_ports: ["{{ app_port }}:80"]
+        volumes: ["formation_data:/usr/share/nginx/html:ro"]
+        env:
+          APP_ENV: production
+        healthcheck:
+          test: ["CMD", "wget", "-qO-", "http://localhost/"]
+          interval: 10s
+          retries: 3
+
+    - name: Vérifier la réponse HTTP
+      ansible.builtin.uri:
+        url: "http://localhost:{{ app_port }}"
+        status_code: 200
+      register: r
+      retries: 10
+      delay: 2
+      until: r.status == 200
+
+    - name: Déployer une pile Compose
+      community.docker.docker_compose_v2:
+        project_src: ./stack
+        state: present
+      when: false

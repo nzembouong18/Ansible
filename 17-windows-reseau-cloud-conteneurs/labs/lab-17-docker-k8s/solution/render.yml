@@ -1,0 +1,65 @@
+---
+# ansible-playbook render.yml -e env=dev
+- name: Rendre et valider les manifests Kubernetes
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    env: dev
+    out_dir: "{{ playbook_dir }}/out/{{ env }}"
+    manifests:
+      - { template: configmap.yml.j2, file: configmap.yml, kind: ConfigMap, always: true }
+      - { template: deployment.yml.j2, file: deployment.yml, kind: Deployment, always: true }
+      - { template: service.yml.j2, file: service.yml, kind: Service, always: true }
+      - { template: ingress.yml.j2, file: ingress.yml, kind: Ingress, always: false }
+  tasks:
+    - name: Charger les variables de l'environnement
+      ansible.builtin.include_vars: "vars/{{ env }}.yml"
+
+    - name: Valider les paramètres
+      ansible.builtin.assert:
+        that:
+          - image is match('^[^:]+:[^:]+$')
+          - not image.endswith(':latest')
+          - replicas | int >= 1
+          - cpu_limit is defined and memory_limit is defined
+        fail_msg: "Paramètres invalides : l'image doit avoir un tag explicite (pas latest) et des limites sont requises"
+
+    - name: Créer le dossier de sortie
+      ansible.builtin.file:
+        path: "{{ out_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Rendre les manifests
+      ansible.builtin.template:
+        src: "templates/{{ item.template }}"
+        dest: "{{ out_dir }}/{{ item.file }}"
+        mode: "0644"
+      loop: "{{ manifests }}"
+      loop_control:
+        label: "{{ item.file }}"
+      when: item.always or (ingress_host | length > 0)
+
+    - name: Lire les manifests rendus
+      ansible.builtin.slurp:
+        src: "{{ out_dir }}/{{ item.file }}"
+      loop: "{{ manifests }}"
+      loop_control:
+        label: "{{ item.file }}"
+      register: rendered
+      when: item.always or (ingress_host | length > 0)
+
+    - name: Vérifier que chaque fichier est un YAML valide du bon kind
+      ansible.builtin.assert:
+        that:
+          - (item.content | b64decode | from_yaml).kind == item.item.kind
+          - (item.content | b64decode | from_yaml).metadata.namespace == k8s_namespace
+        quiet: true
+      loop: "{{ rendered.results | rejectattr('skipped', 'defined') | list }}"
+      loop_control:
+        label: "{{ item.item.file }}"
+
+    - name: Résumé
+      ansible.builtin.debug:
+        msg: "{{ rendered.results | rejectattr('skipped', 'defined') | map(attribute='item.file') | list }} -> {{ out_dir }}"

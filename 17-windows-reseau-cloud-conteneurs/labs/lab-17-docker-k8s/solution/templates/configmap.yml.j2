@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ app_name }}-config
+  namespace: {{ k8s_namespace }}
+data:
+  APP_ENV: "{{ app_env }}"

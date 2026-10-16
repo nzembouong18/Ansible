@@ -1,0 +1,14 @@
+---
+all:
+  children:
+    windows:
+      hosts:
+        win01:
+          ansible_host: 192.168.56.31
+      vars:
+        ansible_user: Administrator
+        ansible_password: "{{ vault_win_password }}"      # Vault !
+        ansible_connection: winrm
+        ansible_winrm_transport: ntlm                     # ou kerberos / credssp en domaine
+        ansible_winrm_server_cert_validation: ignore      # labo uniquement ; en prod : certificat valide
+        ansible_port: 5986                                # HTTPS

@@ -1,0 +1,44 @@
+---
+# Partie B : nécessite un cluster et le paquet Python "kubernetes"
+#   ansible-playbook deploy.yml -e env=dev [-e state=absent]
+- name: Rendre et valider les manifests
+  ansible.builtin.import_playbook: render.yml
+
+- name: Déployer sur Kubernetes
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    env: dev
+    state: present
+  tasks:
+    - name: Charger les variables de l'environnement
+      ansible.builtin.include_vars: "vars/{{ env }}.yml"
+
+    - name: Namespace
+      kubernetes.core.k8s:
+        api_version: v1
+        kind: Namespace
+        name: "{{ k8s_namespace }}"
+        state: "{{ state }}"
+
+    - name: Appliquer les manifests
+      kubernetes.core.k8s:
+        src: "{{ item }}"
+        state: "{{ state }}"
+        wait: "{{ state == 'present' }}"
+        wait_timeout: 120
+      loop: "{{ lookup('ansible.builtin.fileglob', playbook_dir + '/out/' + env + '/*.yml', wantlist=True) | sort }}"
+
+    - name: Contrôler le déploiement
+      kubernetes.core.k8s_info:
+        kind: Deployment
+        name: "{{ app_name }}"
+        namespace: "{{ k8s_namespace }}"
+      register: dep
+      when: state == 'present'
+
+    - name: Vérifier les réplicas prêts
+      ansible.builtin.assert:
+        that: dep.resources[0].status.readyReplicas | default(0) | int == replicas | int
+      when: state == 'present'

@@ -1,0 +1,9 @@
+---
+k8s_namespace: formation-dev
+app_name: web
+image: nginx:1.27-alpine
+replicas: 1
+cpu_limit: 200m
+memory_limit: 128Mi
+ingress_host: ""
+app_env: dev

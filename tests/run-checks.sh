@@ -29,6 +29,11 @@ run "inventory_csv.py + constructed" bash -c \
   "ansible-inventory -i 13-inventaires-dynamiques/labs/lab-13-inventaire-csv/solution/inventory_csv.py \
    -i 13-inventaires-dynamiques/labs/lab-13-inventaire-csv/solution/constructed.yml --graph | grep -q big_servers"
 
+echo "== Module 17 : rendu et validation de manifests Kubernetes"
+run "render.yml dev" bash -c "cd 17-windows-reseau-cloud-conteneurs/labs/lab-17-docker-k8s/solution && ansible-playbook -i localhost, render.yml -e env=dev"
+run "render.yml prod (ingress inclus)" bash -c "cd 17-windows-reseau-cloud-conteneurs/labs/lab-17-docker-k8s/solution && ansible-playbook -i localhost, render.yml -e env=prod && test -f out/prod/ingress.yml"
+run "refus de l'image :latest" bash -c "cd 17-windows-reseau-cloud-conteneurs/labs/lab-17-docker-k8s/solution && ! ansible-playbook -i localhost, render.yml -e env=prod -e image=nginx:latest"
+
 echo "== Module 14 : tests unitaires du module config_kv"
 run "pytest config_kv" python3 -m pytest -q 14-developpement/labs/lab-14-module-kv/solution/tests
 

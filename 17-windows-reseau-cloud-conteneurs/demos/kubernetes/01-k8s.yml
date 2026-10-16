@@ -1,0 +1,50 @@
+---
+# Nécessite un cluster (kind, minikube, k3s…), un kubeconfig, et pip: kubernetes
+- name: Déployer sur Kubernetes
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    k8s_namespace: formation
+    app_name: web
+    replicas: 2
+    image: nginx:1.27-alpine
+  tasks:
+    - name: Namespace
+      kubernetes.core.k8s:
+        name: "{{ k8s_namespace }}"
+        api_version: v1
+        kind: Namespace
+        state: present
+
+    - name: Déploiement et service (manifests rendus par Jinja2)
+      kubernetes.core.k8s:
+        state: present
+        namespace: "{{ k8s_namespace }}"
+        template:
+          - path: templates/deployment.yml.j2
+          - path: templates/service.yml.j2
+        wait: true
+        wait_timeout: 120
+
+    - name: Lire l'état du déploiement
+      kubernetes.core.k8s_info:
+        kind: Deployment
+        name: "{{ app_name }}"
+        namespace: "{{ k8s_namespace }}"
+      register: dep
+
+    - name: Contrôler les réplicas prêts
+      ansible.builtin.assert:
+        that: dep.resources[0].status.readyReplicas | default(0) == replicas
+
+    - name: Installer un chart Helm
+      kubernetes.core.helm:
+        name: monitoring
+        chart_ref: prometheus-community/kube-prometheus-stack
+        release_namespace: monitoring
+        create_namespace: true
+        values:
+          grafana:
+            adminPassword: "{{ lookup('ansible.builtin.env', 'GRAFANA_PASSWORD') }}"
+      when: false

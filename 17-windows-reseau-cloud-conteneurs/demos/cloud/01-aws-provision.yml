@@ -1,0 +1,73 @@
+---
+# Provisionnement AWS avec Ansible (alternative/complément à Terraform) - nécessite boto3 + identifiants AWS
+- name: Provisionner une petite infrastructure AWS
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    region: eu-west-3
+    project: formation
+  tasks:
+    - name: Groupe de sécurité web
+      amazon.aws.ec2_security_group:
+        name: "{{ project }}-web"
+        description: HTTP/HTTPS/SSH
+        region: "{{ region }}"
+        rules:
+          - { proto: tcp, ports: [22], cidr_ip: 203.0.113.0/24 }
+          - { proto: tcp, ports: [80, 443], cidr_ip: 0.0.0.0/0 }
+        tags: { Project: "{{ project }}" }
+      register: sg
+
+    - name: Lancer deux instances
+      amazon.aws.ec2_instance:
+        name: "{{ project }}-web-{{ item }}"
+        region: "{{ region }}"
+        instance_type: t3.micro
+        image_id: ami-0123456789abcdef0
+        key_name: formation
+        security_groups: ["{{ sg.group_id }}"]
+        wait: true
+        tags: { Project: "{{ project }}", Role: web }
+      loop: [1, 2]
+      register: vms
+
+    - name: Ajouter les instances à l'inventaire en mémoire
+      ansible.builtin.add_host:
+        name: "{{ item.instances[0].public_ip_address }}"
+        groups: new_web
+        ansible_user: ubuntu
+      loop: "{{ vms.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    - name: Attendre SSH
+      ansible.builtin.wait_for:
+        host: "{{ item.instances[0].public_ip_address }}"
+        port: 22
+        timeout: 300
+      loop: "{{ vms.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    - name: Bucket S3 pour les artefacts
+      amazon.aws.s3_bucket:
+        name: "{{ project }}-artefacts-eu"
+        region: "{{ region }}"
+        versioning: true
+        encryption: AES256
+        public_access:
+          block_public_acls: true
+          block_public_policy: true
+          ignore_public_acls: true
+          restrict_public_buckets: true
+
+- name: Configurer les nouvelles instances
+  hosts: new_web
+  become: true
+  tasks:
+    - name: Installer nginx (ou appliquer le rôle du module 08 via roles_path)
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+        update_cache: true

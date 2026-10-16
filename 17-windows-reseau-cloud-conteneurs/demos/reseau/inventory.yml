@@ -1,0 +1,14 @@
+---
+all:
+  children:
+    routeurs:
+      hosts:
+        r1: { ansible_host: 192.168.56.41 }
+        r2: { ansible_host: 192.168.56.42 }
+      vars:
+        ansible_connection: ansible.netcommon.network_cli
+        ansible_network_os: cisco.ios.ios
+        ansible_user: admin
+        ansible_password: "{{ vault_net_password }}"
+        ansible_become: true
+        ansible_become_method: enable
