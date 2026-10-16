@@ -1,0 +1,13 @@
+---
+# Rendu local du template avec un inventaire factice (voir inventory-test.yml)
+# ansible-playbook -i inventory-test.yml render.yml
+- name: Rendre le template haproxy en local
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Générer /tmp/haproxy.cfg
+      ansible.builtin.template:
+        src: haproxy.cfg.j2
+        dest: /tmp/haproxy.cfg
+        mode: "0644"

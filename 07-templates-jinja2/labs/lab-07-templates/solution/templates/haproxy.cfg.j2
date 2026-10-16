@@ -1,0 +1,27 @@
+# {{ ansible_managed }}
+global
+    log /dev/log local0
+    maxconn {{ lb_maxconn | default(2000) }}
+
+defaults
+    mode http
+    timeout connect 5s
+    timeout client  30s
+    timeout server  30s
+
+frontend http_in
+    bind *:{{ lb_port | default(80) }}
+    default_backend web_pool
+
+backend web_pool
+    balance {{ lb_algo | default('roundrobin') }}
+{% for h in groups['webservers'] %}
+    server {{ h }} {{ hostvars[h]['ansible_host'] | default(h) }}:{{ hostvars[h]['http_port'] | default(80) }} check
+{% endfor %}
+{% if lb_stats_enabled | default(false) | bool %}
+
+listen stats
+    bind *:8404
+    stats enable
+    stats uri /stats
+{% endif %}

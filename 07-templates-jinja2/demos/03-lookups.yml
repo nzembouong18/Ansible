@@ -1,0 +1,23 @@
+---
+- name: Lookups
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Variable d'environnement et commande
+      ansible.builtin.debug:
+        msg:
+          - "HOME = {{ lookup('ansible.builtin.env', 'HOME') }}"
+          - "date = {{ lookup('ansible.builtin.pipe', 'date +%F') }}"
+
+    - name: Contenu d'un fichier
+      ansible.builtin.debug:
+        msg: "{{ lookup('ansible.builtin.file', '/etc/hostname') }}"
+
+    - name: Mot de passe généré et mémorisé (identique à chaque exécution)
+      ansible.builtin.debug:
+        msg: "{{ lookup('ansible.builtin.password', '/tmp/demo-db.pwd length=16 chars=ascii_letters,digits') }}"
+
+    - name: Liste de fichiers (query = toujours une liste)
+      ansible.builtin.debug:
+        msg: "{{ query('ansible.builtin.fileglob', '*.yml') | map('basename') | list }}"

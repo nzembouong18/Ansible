@@ -5,19 +5,18 @@
 Tous les labos de la formation s'exécutent dans un environnement **jetable et reproductible** :
 
 ```
-┌──────────────────────────── réseau Docker "lab" ────────────────────────────┐
-│                                                                              │
-│  ┌─────────────┐   SSH    ┌────────┐ ┌────────┐ ┌────────┐ ┌─────────────┐   │
-│  │  control    │ ───────► │  web1  │ │  web2  │ │  db1   │ │ rocky1 (opt)│   │
-│  │ ansible-core│          │ Ubuntu │ │ Ubuntu │ │ Ubuntu │ │ Rocky 9     │   │
-│  │ lint/molecule│         │systemd │ │systemd │ │systemd │ │ systemd     │   │
-│  └─────────────┘          └────────┘ └────────┘ └────────┘ └─────────────┘   │
-│   /workspace = ce dépôt    :8081→80   :8082→80                               │
-└──────────────────────────────────────────────────────────────────────────────┘
+                         réseau Docker "lab"
+ ┌─────────────┐  SSH   ┌───────┐ ┌───────┐ ┌───────┐ ┌───────┐ ┌──────────────┐
+ │   control   │ ─────► │  lb1  │ │ web1  │ │ web2  │ │  db1  │ │ rocky1 (opt) │
+ │ ansible,    │        │Ubuntu │ │Ubuntu │ │Ubuntu │ │Ubuntu │ │  Rocky 9     │
+ │ lint,       │        │systemd│ │systemd│ │systemd│ │systemd│ │  systemd     │
+ │ molecule    │        └───────┘ └───────┘ └───────┘ └───────┘ └──────────────┘
+ └─────────────┘         :8080→80  :8081→80  :8082→80
+ /workspace = ce dépôt
 ```
 
 * **control** : le *control node* (là où l'on exécute `ansible-playbook`). Le dépôt est monté dans `/workspace`.
-* **web1, web2, db1** : *managed nodes* Ubuntu 24.04 avec **systemd**, SSH et Python → on peut tester `service`, `systemd`, `apt`, `cron`, `user`… comme sur de vraies VM.
+* **lb1, web1, web2, db1** : *managed nodes* Ubuntu 24.04 avec **systemd**, SSH et Python → on peut tester `service`, `systemd`, `apt`, `cron`, `user`… comme sur de vraies VM.
 * **rocky1** (profil optionnel) : famille RedHat (`dnf`, `firewalld`, SELinux non actif en conteneur) pour les labos multi-OS.
 
 > ⚠️ Les conteneurs sont `privileged` et la clé SSH est sans mot de passe : **c'est un labo, jamais un modèle de production**.
@@ -26,7 +25,7 @@ Tous les labos de la formation s'exécutent dans un environnement **jetable et r
 
 ```bash
 cd 00-lab
-./lab.sh up        # génère la clé SSH, construit les images, démarre 4 conteneurs
+./lab.sh up        # génère la clé SSH, construit les images, démarre 5 conteneurs
 ./lab.sh shell     # ouvre un shell dans le nœud de contrôle
 ```
 
@@ -41,6 +40,7 @@ ansible all -m ping
 Résultat attendu :
 
 ```
+lb1  | SUCCESS => { "changed": false, "ping": "pong" }
 web1 | SUCCESS => { "changed": false, "ping": "pong" }
 web2 | SUCCESS => { "changed": false, "ping": "pong" }
 db1  | SUCCESS => { "changed": false, "ping": "pong" }
@@ -87,7 +87,7 @@ Symboles : 🎯 objectif · 🧪 démo · 🛠️ labo · ⚠️ piège classiqu
 ## 5. 🛠️ Lab 00 — Validation de l'environnement
 
 1. Lancez `./lab.sh up` puis `./lab.sh shell`.
-2. Exécutez `ansible all -m ping` → 3 `pong`.
+2. Exécutez `ansible all -m ping` → 4 `pong`.
 3. Exécutez `ansible all -m command -a "uname -a"` → noyau identique (conteneurs) mais **hostnames** différents.
 4. Exécutez `ansible web1 -m setup -a "filter=ansible_distribution*"`.
 5. Exécutez `ansible all -b -m command -a "id"` → `uid=0(root)` grâce à `become`.

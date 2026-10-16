@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       openssh-client git sshpass vim-tiny less curl jq iputils-ping ca-certificates \
     && rm -rf /var/lib/apt/lists/* \
     && useradd -m -s /bin/bash -u 1000 ansible
-RUN pip install ansible-core ansible-lint yamllint jmespath netaddr passlib \
+RUN pip install ansible ansible-lint yamllint jmespath netaddr passlib \
       molecule pytest-testinfra
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh

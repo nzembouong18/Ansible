@@ -1,0 +1,37 @@
+# {{ ansible_managed }}
+# Généré pour {{ inventory_hostname }}
+
+{% set workers = (cpu_count | default(2)) * 2 %}
+worker_processes {{ workers }};
+
+events {
+    worker_connections {{ worker_connections | default(1024) }};
+}
+
+http {
+    server_tokens off;
+{% if env == 'prod' %}
+    access_log /var/log/nginx/access.log;
+    error_log  /var/log/nginx/error.log warn;
+{% else %}
+    access_log /var/log/nginx/access.log;
+    error_log  /var/log/nginx/error.log debug;
+{% endif %}
+
+{% macro vhost(name, port=80, root='/var/www/html') %}
+    server {
+        listen {{ port }};
+        server_name {{ name }};
+        root {{ root }};
+    }
+{% endmacro %}
+{% for site in sites %}
+{{ vhost(site.name, site.port | default(80), site.root | default('/var/www/html')) }}
+{% endfor %}
+
+    upstream backend {
+{% for h in backends %}
+        server {{ h.host }}:{{ h.port }}{{ ' backup' if h.backup | default(false) }};
+{% endfor %}
+    }
+}

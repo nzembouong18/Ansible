@@ -1,0 +1,23 @@
+---
+# json_query = JMESPath (nécessite: pip install jmespath)
+- name: json_query
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    cluster:
+      - { name: web1, role: web, cpu: 2, tags: [a, b] }
+      - { name: web2, role: web, cpu: 4, tags: [b] }
+      - { name: db1, role: db, cpu: 8, tags: [c] }
+  tasks:
+    - name: Noms des serveurs web
+      ansible.builtin.debug:
+        msg: "{{ cluster | community.general.json_query('[?role==`web`].name') }}"
+
+    - name: Projection (nom + cpu) des machines à plus de 2 CPU
+      ansible.builtin.debug:
+        msg: "{{ cluster | community.general.json_query('[?cpu>`2`].{host: name, vcpu: cpu}') }}"
+
+    - name: Équivalent sans json_query (selectattr + map)
+      ansible.builtin.debug:
+        msg: "{{ cluster | selectattr('role', 'eq', 'web') | map(attribute='name') | list }}"

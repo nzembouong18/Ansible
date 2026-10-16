@@ -1,0 +1,28 @@
+---
+# Rendu local d'un template (aucune cible requise)
+- name: Démo template
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    env: prod
+    cpu_count: 4
+    sites:
+      - { name: a.example.com }
+      - { name: b.example.com, port: 8080, root: /srv/b }
+    backends:
+      - { host: 10.0.0.11, port: 8000 }
+      - { host: 10.0.0.12, port: 8000 }
+      - { host: 10.0.0.99, port: 8000, backup: true }
+
+  tasks:
+    - name: Générer la configuration
+      ansible.builtin.template:
+        src: nginx.conf.j2
+        dest: /tmp/demo-nginx.conf
+        mode: "0644"
+      register: rendu
+
+    - name: Afficher le résultat
+      ansible.builtin.debug:
+        msg: "{{ lookup('ansible.builtin.file', '/tmp/demo-nginx.conf') }}"

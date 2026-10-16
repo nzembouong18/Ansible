@@ -1,0 +1,62 @@
+---
+- name: Tour des filtres
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    users:
+      - { name: alice, active: true, groups: [dev, ops] }
+      - { name: bob, active: false, groups: [dev] }
+      - { name: carol, active: true, groups: [ops] }
+    base: { a: 1, b: 2 }
+    extra: { b: 20, c: 3 }
+    version_tag: "v2.4.1"
+
+  tasks:
+    - name: Défauts, types, casse
+      ansible.builtin.debug:
+        msg:
+          - "{{ inconnue | default('valeur par défaut') }}"
+          - "{{ '' | default('vide remplacé', true) }}"
+          - "{{ 'alice' | upper }} / {{ 'ALICE' | lower }} / {{ 'alice' | capitalize }}"
+          - "{{ '42' | int + 8 }}"
+
+    - name: Chaînes et regex
+      ansible.builtin.debug:
+        msg:
+          - "{{ version_tag | regex_replace('^v', '') }}"
+          - "{{ version_tag | regex_search('[0-9]+') }}"
+          - "{{ 'a,b,c' | split(',') }}"
+          - "{{ ['a', 'b', 'c'] | join(' | ') }}"
+          - "{{ 'mon mot de passe' | quote }}"
+          - "{{ 'secret' | hash('sha256') }}"
+
+    - name: Listes
+      ansible.builtin.debug:
+        msg:
+          - "actifs : {{ users | selectattr('active') | map(attribute='name') | list }}"
+          - "groupes : {{ users | map(attribute='groups') | flatten | unique | sort }}"
+          - "union : {{ [1, 2] | union([2, 3]) }}"
+          - "différence : {{ [1, 2, 3] | difference([2]) }}"
+          - "min/max/sum : {{ [3, 1, 2] | min }} {{ [3, 1, 2] | max }} {{ [3, 1, 2] | sum }}"
+          - "match : {{ ['web1', 'db1', 'web2'] | select('match', '^web') | list }}"
+
+    - name: Dictionnaires
+      ansible.builtin.debug:
+        msg:
+          - "combine : {{ base | combine(extra) }}"
+          - "items : {{ base | dict2items }}"
+
+    - name: Formats
+      ansible.builtin.debug:
+        msg: "{{ base | to_nice_yaml }}"
+
+    - name: JSON
+      ansible.builtin.debug:
+        msg: "{{ users | map(attribute='name') | list | to_json }}"
+
+    - name: Réseau (nécessite netaddr)
+      ansible.builtin.debug:
+        msg:
+          - "{{ '192.168.1.10/24' | ansible.utils.ipaddr('network') }}"
+          - "{{ '192.168.1.10/24' | ansible.utils.ipaddr('netmask') }}"
