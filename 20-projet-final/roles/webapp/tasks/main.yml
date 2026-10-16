@@ -56,7 +56,7 @@
   ansible.builtin.file:
     path: "{{ item.path }}"
     state: absent
-  loop: "{{ (webapp_releases.files | sort(attribute='mtime', reverse=true))[webapp_keep_releases | int:] }}"
+  loop: "{{ (webapp_releases.files | sort(attribute='mtime', reverse=true))[webapp_keep_releases | int :] }}"
   loop_control:
     label: "{{ item.path | basename }}"
 
