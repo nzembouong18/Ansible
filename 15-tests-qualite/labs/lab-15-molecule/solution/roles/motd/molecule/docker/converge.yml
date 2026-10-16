@@ -1,0 +1,9 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: true
+  roles:
+    - role: motd
+      vars:
+        motd_message: "Test Molecule"
+        motd_owner: qa

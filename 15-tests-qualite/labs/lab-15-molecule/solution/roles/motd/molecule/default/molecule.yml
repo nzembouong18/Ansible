@@ -1,0 +1,33 @@
+---
+# Scénario "default" : s'exécute sur la machine locale (aucun Docker requis)
+driver:
+  name: default
+  options:
+    managed: false
+platforms:
+  - name: localhost
+provisioner:
+  name: ansible
+  env:
+    ANSIBLE_ROLES_PATH: "${MOLECULE_PROJECT_DIRECTORY}/.."
+  inventory:
+    hosts:
+      all:
+        hosts:
+          localhost:
+            ansible_connection: local
+            ansible_python_interpreter: "{{ ansible_playbook_python }}"
+        vars:
+          motd_path: /tmp/molecule-motd
+  config_options:
+    defaults:
+      callbacks_enabled: ansible.posix.profile_tasks
+verifier:
+  name: ansible
+scenario:
+  test_sequence:
+    - syntax
+    - converge
+    - idempotence
+    - verify
+    - cleanup

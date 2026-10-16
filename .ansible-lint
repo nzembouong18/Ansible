@@ -5,6 +5,7 @@ exclude_paths:
   - .git/
   - 00-lab/keys/
   - tests/
+  - 15-tests-qualite/demos/mauvais.yml
   - "**/vault.yml"
   - "**/collections/"
   - "**/labs/**/enonce/"

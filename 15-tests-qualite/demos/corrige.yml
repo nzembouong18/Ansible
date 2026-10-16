@@ -1,0 +1,26 @@
+---
+- name: Installer et configurer nginx
+  hosts: all
+  become: true
+  tasks:
+    - name: Installer nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+        update_cache: true
+
+    - name: Déposer la configuration
+      ansible.builtin.copy:
+        src: a
+        dest: /etc/a
+        mode: "0644"
+        owner: root
+        group: root
+      notify: Redémarrer nginx
+      tags: [config]
+
+  handlers:
+    - name: Redémarrer nginx
+      ansible.builtin.service:
+        name: nginx
+        state: restarted

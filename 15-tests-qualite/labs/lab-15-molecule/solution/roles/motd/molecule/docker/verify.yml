@@ -1,0 +1,24 @@
+---
+- name: Vérifier le résultat du rôle
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Lire le fichier motd
+      ansible.builtin.slurp:
+        src: /tmp/molecule-motd
+      register: motd
+
+    - name: Contrôler le contenu
+      ansible.builtin.assert:
+        that:
+          - "'Test Molecule' in (motd.content | b64decode)"
+          - "'Propriétaire : qa' in (motd.content | b64decode)"
+
+    - name: Contrôler les permissions
+      ansible.builtin.stat:
+        path: /tmp/molecule-motd
+      register: st
+
+    - name: Le fichier doit être en 0644
+      ansible.builtin.assert:
+        that: st.stat.mode == '0644'

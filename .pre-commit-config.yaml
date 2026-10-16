@@ -1,0 +1,29 @@
+---
+# pip install pre-commit && pre-commit install
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+        exclude: (vault\.yml|/templates/|\.j2$)
+      - id: check-added-large-files
+      - id: detect-private-key
+        exclude: ^00-lab/keys/
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+  - repo: https://github.com/ansible/ansible-lint
+    rev: v25.1.0
+    hooks:
+      - id: ansible-lint
+  - repo: local
+    hooks:
+      - id: vault-encrypted
+        name: Les fichiers vault.yml doivent être chiffrés
+        language: script
+        entry: tests/check-vault-encrypted.sh
+        files: vault\.yml$

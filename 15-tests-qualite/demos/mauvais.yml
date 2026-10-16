@@ -1,0 +1,11 @@
+---
+# Playbook VOLONTAIREMENT mauvais : ansible-lint -p mauvais.yml
+- hosts: all
+  tasks:
+  - shell: apt-get install -y nginx
+  - command: systemctl restart nginx
+  - copy: src=a dest=/etc/a mode=644
+    tags: Config
+  - name: install thing
+    apt: name=git state=latest
+    ignore_errors: yes

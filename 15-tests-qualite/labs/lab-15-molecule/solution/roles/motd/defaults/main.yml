@@ -1,0 +1,6 @@
+---
+# Valeurs par défaut du rôle motd (surchargeables par l'appelant)
+motd_message: "Serveur géré par Ansible"
+motd_owner: "equipe-infra"
+motd_path: /etc/motd
+motd_show_facts: true

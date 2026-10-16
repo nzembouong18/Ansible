@@ -1,0 +1,33 @@
+---
+name: CI formation Ansible
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Installer les outils
+        run: pip install ansible ansible-lint yamllint molecule pytest jmespath netaddr passlib
+      - name: yamllint
+        run: yamllint -c .yamllint . || true   # informatif
+      - name: ansible-lint (profil production)
+        run: ansible-lint
+
+  tests:
+    runs-on: ubuntu-24.04
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ansible ansible-lint molecule pytest jmespath netaddr passlib
+      - name: Tests de la formation (locaux, sans Docker)
+        run: ./tests/run-checks.sh
