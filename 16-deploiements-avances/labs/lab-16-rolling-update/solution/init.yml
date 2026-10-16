@@ -1,0 +1,37 @@
+---
+- name: Initialiser le modèle (serveurs en 1.0, LB complet)
+  hosts: web
+  gather_facts: false
+  tasks:
+    - name: Dossier du serveur
+      ansible.builtin.file:
+        path: "/tmp/lab16/{{ inventory_hostname }}"
+        state: directory
+        mode: "0755"
+
+    - name: Version et santé
+      ansible.builtin.copy:
+        dest: "/tmp/lab16/{{ inventory_hostname }}/{{ item.name }}"
+        content: "{{ item.value }}\n"
+        mode: "0644"
+      loop:
+        - { name: VERSION, value: "1.0" }
+        - { name: health, value: "OK" }
+
+    - name: Réinitialiser le load balancer (une fois)
+      ansible.builtin.file:
+        path: /tmp/lab16/lb
+        state: "{{ item }}"
+        mode: "0755"
+      loop: [absent, directory]
+      run_once: true
+      delegate_to: lb
+
+    - name: Inscrire le serveur au LB
+      ansible.builtin.lineinfile:
+        path: /tmp/lab16/lb/backends.txt
+        line: "{{ inventory_hostname }}"
+        create: true
+        mode: "0644"
+      delegate_to: lb
+      throttle: 1

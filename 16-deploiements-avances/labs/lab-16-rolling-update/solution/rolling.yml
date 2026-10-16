@@ -1,0 +1,99 @@
+---
+- name: Mise à jour progressive derrière le load balancer
+  hosts: web
+  gather_facts: false
+  serial: 1
+  max_fail_percentage: 0
+  vars:
+    target_version: "2.0"
+    lb_dir: /tmp/lab16/lb
+    srv_dir: "/tmp/lab16/{{ inventory_hostname }}"
+  tasks:
+    - name: Mémoriser la version actuelle
+      ansible.builtin.slurp:
+        src: "{{ srv_dir }}/VERSION"
+      register: old_version
+
+    - name: Mise à jour d'un serveur avec rollback
+      block:
+        - name: Retirer du load balancer
+          ansible.builtin.lineinfile:
+            path: "{{ lb_dir }}/backends.txt"
+            line: "{{ inventory_hostname }}"
+            state: absent
+          delegate_to: lb
+
+        - name: Consigner le nombre de serveurs actifs
+          ansible.builtin.shell: set -o pipefail; wc -l < {{ lb_dir }}/backends.txt >> {{ lb_dir }}/history.log
+          args:
+            executable: /bin/bash
+          delegate_to: lb
+          changed_when: true
+
+        - name: Déployer la nouvelle version
+          ansible.builtin.copy:
+            dest: "{{ srv_dir }}/VERSION"
+            content: "{{ target_version }}\n"
+            mode: "0644"
+
+        - name: Simuler un serveur cassé
+          ansible.builtin.copy:
+            dest: "{{ srv_dir }}/health"
+            content: "KO\n"
+            mode: "0644"
+          when: broken_host is defined and broken_host == inventory_hostname
+
+        - name: Health check
+          ansible.builtin.shell: >
+            set -o pipefail;
+            grep -qx OK {{ srv_dir }}/health &&
+            grep -qx '{{ target_version }}' {{ srv_dir }}/VERSION
+          args:
+            executable: /bin/bash
+          changed_when: false
+          register: health
+          retries: 3
+          delay: 1
+          until: health.rc == 0
+
+        - name: Réintégrer au load balancer
+          ansible.builtin.lineinfile:
+            path: "{{ lb_dir }}/backends.txt"
+            line: "{{ inventory_hostname }}"
+            create: true
+            mode: "0644"
+          delegate_to: lb
+
+        - name: Consigner le nombre de serveurs actifs
+          ansible.builtin.shell: set -o pipefail; wc -l < {{ lb_dir }}/backends.txt >> {{ lb_dir }}/history.log
+          args:
+            executable: /bin/bash
+          delegate_to: lb
+          changed_when: true
+
+      rescue:
+        - name: Rollback de la version
+          ansible.builtin.copy:
+            dest: "{{ srv_dir }}/VERSION"
+            content: "{{ old_version.content | b64decode }}"
+            mode: "0644"
+
+        - name: Échouer clairement (le serveur reste hors du LB)
+          ansible.builtin.fail:
+            msg: "Health check KO sur {{ inventory_hostname }} : version restaurée, serveur laissé hors du LB, déploiement interrompu"
+
+- name: Contrôles finaux
+  hosts: localhost
+  gather_facts: false
+  vars:
+    target_version: "2.0"
+  tasks:
+    - name: Lire l'historique du LB
+      ansible.builtin.slurp:
+        src: /tmp/lab16/lb/history.log
+      register: hist
+
+    - name: Jamais moins de 3 serveurs actifs
+      ansible.builtin.assert:
+        that: (hist.content | b64decode).split() | map('int') | min >= 3
+        success_msg: "Disponibilité préservée : min actifs = {{ (hist.content | b64decode).split() | map('int') | min }}"

@@ -1,0 +1,43 @@
+---
+# Blue/green : deux répertoires de release, un lien symbolique "current" qu'on bascule atomiquement
+#   ansible-playbook -i inventory.ini 03-blue-green.yml -e version=2.0
+#   ansible-playbook -i inventory.ini 03-blue-green.yml -e version=1.0      # retour arrière = rebascule
+- name: Blue/green par bascule de lien
+  hosts: web
+  gather_facts: false
+  vars:
+    base: "/tmp/demo-bg/{{ inventory_hostname }}"
+    version: "1.0"
+    slot: "{{ 'green' if (version is version('2.0', '>=')) else 'blue' }}"
+  tasks:
+    - name: Préparer le slot cible
+      ansible.builtin.file:
+        path: "{{ base }}/{{ slot }}"
+        state: directory
+        mode: "0755"
+
+    - name: Déployer la version dans le slot inactif
+      ansible.builtin.copy:
+        dest: "{{ base }}/{{ slot }}/VERSION"
+        content: "{{ version }}\n"
+        mode: "0644"
+
+    - name: Tester le slot avant bascule
+      ansible.builtin.command: grep -q "{{ version }}" {{ base }}/{{ slot }}/VERSION
+      changed_when: false
+
+    - name: Basculer (atomique) le lien current
+      ansible.builtin.file:
+        src: "{{ base }}/{{ slot }}"
+        dest: "{{ base }}/current"
+        state: link
+        force: true
+
+    - name: Version servie
+      ansible.builtin.command: cat {{ base }}/current/VERSION
+      register: servie
+      changed_when: false
+
+    - name: Afficher
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} sert la version {{ servie.stdout }}"

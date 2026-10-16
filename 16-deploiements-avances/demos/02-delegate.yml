@@ -1,0 +1,39 @@
+---
+# delegate_to : la tâche s'exécute ailleurs, mais avec le contexte (variables) de l'hôte courant
+- name: Delegate_to, run_once, delegate_facts
+  hosts: web
+  gather_facts: false
+  vars:
+    lb_file: /tmp/demo-lb-backends.txt
+  tasks:
+    - name: Initialiser le "load balancer" (une seule fois)
+      ansible.builtin.copy:
+        content: ""
+        dest: "{{ lb_file }}"
+        mode: "0644"
+      delegate_to: lb
+      run_once: true
+
+    - name: Enregistrer chaque web dans le LB (tâche déléguée au LB)
+      ansible.builtin.lineinfile:
+        path: "{{ lb_file }}"
+        line: "server {{ inventory_hostname }} 10.0.0.{{ ansible_play_hosts.index(inventory_hostname) + 11 }}:80"
+      delegate_to: lb
+      throttle: 1             # évite les écritures concurrentes dans le même fichier
+
+    - name: Lire le résultat (une seule fois, sur le LB)
+      ansible.builtin.command: cat {{ lb_file }}
+      delegate_to: lb
+      run_once: true
+      register: contenu
+      changed_when: false
+
+    - name: Afficher
+      ansible.builtin.debug:
+        var: contenu.stdout_lines
+      run_once: true
+
+    - name: Appel d'API "local" (action exécutée sur le contrôleur) pour chaque hôte
+      ansible.builtin.debug:
+        msg: "notification envoyée pour {{ inventory_hostname }}"
+      delegate_to: localhost

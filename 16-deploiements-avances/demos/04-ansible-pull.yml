@@ -1,0 +1,37 @@
+---
+# ansible-pull : le serveur tire lui-même la config depuis Git (modèle "pull", utile pour des parcs
+# derrière NAT, des postes, des IoT, ou un auto-scaling). À exécuter sur les cibles :
+- name: Installer ansible-pull via cron
+  hosts: all
+  become: true
+  vars:
+    pull_repo: https://github.com/nzembouong18/Ansible.git
+    pull_playbook: local.yml
+  tasks:
+    - name: Installer git et ansible
+      ansible.builtin.package:
+        name: [git, ansible-core]
+        state: present
+
+    - name: Planifier ansible-pull toutes les 15 minutes (décalé aléatoirement)
+      ansible.builtin.cron:
+        name: ansible-pull
+        minute: "*/15"
+        user: root
+        job: >-
+          sleep $((RANDOM \% 120)) &&
+          ansible-pull -U {{ pull_repo }} -C main -i localhost, --purge
+          -o {{ pull_playbook }} >> /var/log/ansible-pull.log 2>&1
+
+    - name: Rotation du journal
+      ansible.builtin.copy:
+        dest: /etc/logrotate.d/ansible-pull
+        mode: "0644"
+        content: |
+          /var/log/ansible-pull.log {
+            weekly
+            rotate 4
+            compress
+            missingok
+            notifempty
+          }

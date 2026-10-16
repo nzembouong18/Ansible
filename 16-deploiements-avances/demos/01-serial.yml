@@ -1,0 +1,25 @@
+---
+# ansible-playbook -i inventory.ini 01-serial.yml
+# Observez les LOTS : 1 hôte (canari), puis 2, puis le reste.
+- name: Déploiement par lots
+  hosts: web
+  gather_facts: false
+  serial:
+    - 1
+    - 2
+    - "100%"
+  max_fail_percentage: 30
+  tasks:
+    - name: Lot courant
+      ansible.builtin.debug:
+        msg: "Lot de {{ ansible_play_batch | length }} hôte(s) : {{ ansible_play_batch }}"
+      run_once: true
+
+    - name: Travail sur chaque hôte du lot
+      ansible.builtin.command: sleep 1
+      changed_when: false
+
+    - name: Simuler un échec sur web3 si demandé (-e fail_web3=true)
+      ansible.builtin.fail:
+        msg: "Échec simulé sur web3"
+      when: (fail_web3 | default(false) | bool) and inventory_hostname == 'web3'
