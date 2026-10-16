@@ -1,0 +1,8 @@
+---
+- name: Tâche commune 1
+  ansible.builtin.debug:
+    msg: "tâche commune 1"
+
+- name: Tâche commune 2
+  ansible.builtin.debug:
+    msg: "tâche commune 2"

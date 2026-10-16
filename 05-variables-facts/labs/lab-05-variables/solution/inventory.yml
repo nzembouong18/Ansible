@@ -1,0 +1,11 @@
+---
+# Inventaire local pour tester sans le labo Docker
+all:
+  children:
+    webservers:
+      hosts:
+        web1: { ansible_connection: local }
+        web2: { ansible_connection: local }
+    dbservers:
+      hosts:
+        db1: { ansible_connection: local }

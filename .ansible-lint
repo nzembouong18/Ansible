@@ -1,0 +1,13 @@
+---
+# Configuration ansible-lint du dépôt de formation
+profile: production
+exclude_paths:
+  - .git/
+  - 00-lab/keys/
+  - tests/
+  - "**/labs/**/enonce/"
+  - "**/molecule/"
+warn_list:
+  - experimental
+skip_list:
+  - yaml[line-length]

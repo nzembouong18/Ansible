@@ -1,0 +1,6 @@
+---
+- name: "Créer le dossier {{ nom_dossier }}"
+  ansible.builtin.file:
+    path: "/tmp/demo-include/{{ nom_dossier }}"
+    state: directory
+    mode: "0755"

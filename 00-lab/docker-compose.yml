@@ -1,0 +1,51 @@
+# Labo Ansible : 1 nœud de contrôle + 3 nœuds Ubuntu (+ 1 Rocky en option : profil "rocky")
+# Usage : ./lab.sh up   puis   ./lab.sh shell
+x-node: &node
+  build: ./node
+  privileged: true            # nécessaire pour systemd dans le conteneur (LAB UNIQUEMENT)
+  cgroup: host
+  tmpfs: [/run, /run/lock, /tmp]
+  volumes:
+    - ./keys:/keys:ro
+    - /sys/fs/cgroup:/sys/fs/cgroup:rw
+  networks: [lab]
+
+services:
+  control:
+    build: ./control
+    container_name: control
+    hostname: control
+    volumes:
+      - ..:/workspace
+      - ./keys:/keys:ro
+    environment:
+      ANSIBLE_CONFIG: /workspace/00-lab/ansible.cfg
+    networks: [lab]
+    depends_on: [web1, web2, db1]
+
+  web1:
+    <<: *node
+    container_name: web1
+    hostname: web1
+    ports: ["8081:80"]
+  web2:
+    <<: *node
+    container_name: web2
+    hostname: web2
+    ports: ["8082:80"]
+  db1:
+    <<: *node
+    container_name: db1
+    hostname: db1
+  rocky1:
+    <<: *node
+    build:
+      context: ./node
+      dockerfile: Dockerfile.rocky
+    container_name: rocky1
+    hostname: rocky1
+    profiles: ["rocky"]
+
+networks:
+  lab:
+    driver: bridge

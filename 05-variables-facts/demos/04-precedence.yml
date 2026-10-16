@@ -1,0 +1,42 @@
+---
+# Qui gagne ?
+#   ansible-playbook 04-precedence.yml
+#   ansible-playbook 04-precedence.yml -e niveau=extra_vars
+# Observez la valeur finale de "niveau" selon l'endroit où elle est définie.
+- name: Précédence des variables
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    niveau: play_vars               # vars_files (plus fort) va l'écraser
+  vars_files:
+    - vars/common.yml
+
+  tasks:
+    - name: Valeur au niveau du play
+      ansible.builtin.debug:
+        var: niveau
+
+    - name: vars de tâche écrase vars_files
+      ansible.builtin.debug:
+        var: niveau
+      vars:
+        niveau: task_vars
+
+    - name: set_fact écrase vars de tâche (et vars du play)
+      ansible.builtin.set_fact:
+        niveau: set_fact
+
+    - name: Après set_fact
+      ansible.builtin.debug:
+        var: niveau
+
+    - name: Même avec vars de tâche, set_fact gagne
+      ansible.builtin.debug:
+        var: niveau
+      vars:
+        niveau: task_vars
+
+    - name: Et -e (extra vars) écrase TOUT (relancer avec -e niveau=extra_vars)
+      ansible.builtin.debug:
+        var: niveau

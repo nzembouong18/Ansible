@@ -1,0 +1,9 @@
+---
+- name: Playbook importé par 04-site.yml
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Dit bonjour
+      ansible.builtin.debug:
+        msg: "Je suis dans un playbook importé"

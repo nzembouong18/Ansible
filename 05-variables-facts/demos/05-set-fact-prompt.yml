@@ -1,0 +1,33 @@
+---
+- name: set_fact, include_vars, omit
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    app_name: shop
+    release: "2.1"
+
+  tasks:
+    - name: Calculer une variable composée
+      ansible.builtin.set_fact:
+        full_name: "{{ app_name }}-{{ release }}"
+
+    - name: Utiliser la variable calculée
+      ansible.builtin.debug:
+        msg: "Artefact : {{ full_name }}.tar.gz"
+
+    - name: Charger des variables depuis un fichier
+      ansible.builtin.include_vars:
+        file: vars/common.yml
+
+    - name: Vérifier
+      ansible.builtin.debug:
+        var: vars_file_value
+
+    - name: Paramètre optionnel avec omit (mode non défini => non envoyé)
+      ansible.builtin.file:
+        path: /tmp/demo-omit
+        state: touch
+        mode: "{{ file_mode | default(omit) }}"
+        access_time: preserve
+        modification_time: preserve

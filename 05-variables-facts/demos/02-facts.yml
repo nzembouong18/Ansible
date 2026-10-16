@@ -1,0 +1,40 @@
+---
+- name: Facts
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: Facts principaux
+      ansible.builtin.debug:
+        msg:
+          - "Hôte      : {{ ansible_facts['hostname'] }}"
+          - "OS        : {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}"
+          - "Famille   : {{ ansible_facts['os_family'] }}"
+          - "Noyau     : {{ ansible_facts['kernel'] }}"
+          - "vCPU      : {{ ansible_facts['processor_vcpus'] }}"
+          - "RAM (Mo)  : {{ ansible_facts['memtotal_mb'] }}"
+          - "Python    : {{ ansible_facts['python_version'] }}"
+
+    - name: Créer le dossier facts.d
+      ansible.builtin.file:
+        path: /tmp/demo-facts.d
+        state: directory
+        mode: "0755"
+
+    - name: Déposer un fact personnalisé
+      ansible.builtin.copy:
+        dest: /tmp/demo-facts.d/app.fact
+        content: |
+          [general]
+          version=1.4.2
+          role=frontend
+        mode: "0644"
+      # NB : en vrai, le dossier est /etc/ansible/facts.d (avec become)
+
+    - name: Relire les facts locaux
+      ansible.builtin.setup:
+        fact_path: /tmp/demo-facts.d
+        filter: ansible_local
+
+    - name: Afficher le fact personnalisé
+      ansible.builtin.debug:
+        msg: "version={{ ansible_facts['ansible_local']['app']['general']['version'] }}"

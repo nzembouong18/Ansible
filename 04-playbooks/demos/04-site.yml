@@ -1,0 +1,18 @@
+---
+# Point d'entrée : assemble des playbooks et réutilise des tâches
+- name: Préparation commune
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Import statique (tags/when s'appliquent à toutes les tâches importées)
+      ansible.builtin.import_tasks: tasks/commun.yml
+
+    - name: Include dynamique, une fois par élément de la boucle
+      ansible.builtin.include_tasks: tasks/creer_dossier.yml
+      loop: [alpha, beta]
+      loop_control:
+        loop_var: nom_dossier
+
+- name: Second playbook importé
+  ansible.builtin.import_playbook: 04-autre.yml

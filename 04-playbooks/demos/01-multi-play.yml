@@ -1,0 +1,19 @@
+---
+# Plusieurs plays : exécutés dans l'ordre, chacun sur ses hôtes
+- name: Play 1 - premier
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Tâche du play 1
+      ansible.builtin.debug:
+        msg: "Je passe en premier"
+
+- name: Play 2 - second
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Tâche du play 2
+      ansible.builtin.debug:
+        msg: "Je passe ensuite"

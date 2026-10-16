@@ -1,0 +1,16 @@
+---
+- name: Classer les hôtes par OS
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: Créer des groupes dynamiques
+      ansible.builtin.group_by:
+        key: "os_{{ ansible_facts['distribution'] }}"
+
+- name: Ne cibler que les Ubuntu
+  hosts: os_Ubuntu
+  gather_facts: false
+  tasks:
+    - name: Message
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} est une Ubuntu"

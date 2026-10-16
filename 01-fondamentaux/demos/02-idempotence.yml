@@ -1,0 +1,31 @@
+---
+# Démo 2 — Idempotence : module dédié vs command
+- name: Idempotence
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: (BON) le module file est idempotent
+      ansible.builtin.file:
+        path: /tmp/formation-ansible-idem
+        state: directory
+        mode: "0755"
+
+    - name: (MAUVAIS) command est toujours "changed"  # noqa: no-changed-when command-instead-of-module
+      ansible.builtin.command: mkdir -p /tmp/formation-ansible-cmd
+      # Toujours "changed" ; sans le noqa, ansible-lint râlerait (c'est le but de la démo)
+
+    - name: (ACCEPTABLE) command rendu idempotent avec creates
+      ansible.builtin.command:
+        cmd: touch /tmp/formation-ansible-creates
+        creates: /tmp/formation-ansible-creates
+
+    - name: (ACCEPTABLE) command avec changed_when
+      ansible.builtin.command: date +%s
+      register: horloge
+      changed_when: false      # lecture seule : jamais "changed"
+
+    - name: Afficher le résultat enregistré
+      ansible.builtin.debug:
+        var: horloge.stdout

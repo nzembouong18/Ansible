@@ -1,0 +1,30 @@
+---
+- name: Register et debug
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Lancer une commande
+      ansible.builtin.command: echo "bonjour"
+      register: resultat
+      changed_when: false
+
+    - name: Structure complète
+      ansible.builtin.debug:
+        var: resultat
+
+    - name: Un champ précis
+      ansible.builtin.debug:
+        msg: "stdout={{ resultat.stdout }} rc={{ resultat.rc }}"
+
+    - name: Commande qui échoue (rc=1) mais qu'on tolère
+      ansible.builtin.command: /bin/false
+      register: echec
+      failed_when: false
+      changed_when: false
+
+    - name: Réagir au code retour
+      ansible.builtin.debug:
+        msg: "La commande a renvoyé rc={{ echec.rc }}"
+      when: echec.rc != 0

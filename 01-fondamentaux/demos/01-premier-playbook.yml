@@ -1,0 +1,25 @@
+---
+# Démo 1 — Structure minimale d'un playbook
+- name: Mon premier playbook
+  hosts: localhost            # sur le labo : remplacer par "all" ou "webservers"
+  connection: local
+  gather_facts: true          # collecte les facts (par défaut true)
+
+  tasks:
+    - name: Afficher un message avec un fact
+      ansible.builtin.debug:
+        msg: "Bonjour depuis {{ ansible_facts['hostname'] }} ({{ ansible_facts['distribution'] }})"
+
+    - name: Créer un répertoire de travail
+      ansible.builtin.file:
+        path: /tmp/formation-ansible
+        state: directory
+        mode: "0755"
+
+    - name: Déposer un fichier
+      ansible.builtin.copy:
+        dest: /tmp/formation-ansible/hello.txt
+        content: |
+          Géré par Ansible.
+          Ne pas modifier à la main.
+        mode: "0644"

@@ -1,0 +1,3 @@
+---
+env: prod
+log_level: warn

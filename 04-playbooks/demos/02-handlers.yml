@@ -1,0 +1,42 @@
+---
+# Handlers : une seule exécution, en fin de play, seulement si "changed"
+- name: Démo handlers
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    conf_file: /tmp/demo-handlers.conf
+
+  tasks:
+    - name: Écrire la configuration
+      ansible.builtin.copy:
+        dest: "{{ conf_file }}"
+        content: |
+          option=1
+        mode: "0644"
+      notify:
+        - Recharger le service
+        - Journaliser le changement
+
+    - name: Seconde tâche qui notifie le même handler
+      ansible.builtin.lineinfile:
+        path: "{{ conf_file }}"
+        line: "option2=2"
+      notify: Recharger le service      # le handler ne tournera qu'UNE fois
+
+    - name: Exécuter les handlers maintenant (pas à la fin)
+      ansible.builtin.meta: flush_handlers
+
+    - name: Tâche suivante (après les handlers)
+      ansible.builtin.debug:
+        msg: "Les handlers ont déjà tourné"
+
+  handlers:
+    - name: Recharger le service
+      ansible.builtin.debug:
+        msg: "Rechargement simulé du service"
+
+    - name: Journaliser le changement
+      listen: "journal"                  # appelable aussi par: notify: journal
+      ansible.builtin.debug:
+        msg: "Changement journalisé"

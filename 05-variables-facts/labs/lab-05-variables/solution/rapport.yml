@@ -1,0 +1,23 @@
+---
+- name: Rapport d'inventaire matériel
+  hosts: all
+  gather_facts: true
+
+  tasks:
+    - name: Calculer la RAM en Go
+      ansible.builtin.set_fact:
+        ram_gb: "{{ (ansible_facts['memtotal_mb'] / 1024) | round(1) }}"
+
+    - name: Écrire le rapport sur le contrôleur (une seule fois)
+      ansible.builtin.copy:
+        dest: "{{ playbook_dir }}/report/inventaire.txt"
+        mode: "0644"
+        content: |
+          # Rapport généré le {{ ansible_facts['date_time']['iso8601'] }}
+          {% for h in ansible_play_hosts %}
+          {{ h }} | {{ hostvars[h].ansible_facts.distribution }} {{ hostvars[h].ansible_facts.distribution_version }} | {{ hostvars[h].ansible_facts.processor_vcpus }} vCPU | {{ hostvars[h].ram_gb }} Go | {{ hostvars[h].ansible_facts.default_ipv4.address | default('n/a') }} | {{ hostvars[h].owner }} | {{ hostvars[h].env }}
+          {% endfor %}
+      delegate_to: localhost
+      run_once: true
+      vars:
+        ansible_connection: local

@@ -1,0 +1,19 @@
+---
+- name: Variables magiques
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: Identité de l'hôte courant
+      ansible.builtin.debug:
+        msg:
+          - "inventory_hostname = {{ inventory_hostname }}"
+          - "group_names       = {{ group_names }}"
+          - "groups (clés)    = {{ groups.keys() | list }}"
+          - "hôtes du play     = {{ ansible_play_hosts }}"
+          - "playbook_dir      = {{ playbook_dir }}"
+          - "check_mode        = {{ ansible_check_mode }}"
+
+    - name: Lire une variable d'un autre hôte (premier hôte du play)
+      ansible.builtin.debug:
+        msg: "Le 1er hôte a pour hostname {{ hostvars[ansible_play_hosts[0]]['ansible_facts']['hostname'] }}"
+      run_once: true

@@ -1,0 +1,34 @@
+---
+- name: Lab 01 - Préparer les serveurs web
+  hosts: webservers
+  become: true
+
+  tasks:
+    - name: Créer le répertoire applicatif
+      ansible.builtin.file:
+        path: /opt/formation
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Déposer le fichier d'identité
+      ansible.builtin.copy:
+        dest: /opt/formation/identite.txt
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          Hôte         : {{ ansible_facts['hostname'] }}
+          Distribution : {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}
+          IPv4         : {{ ansible_facts['default_ipv4']['address'] | default('inconnue') }}
+          CPU          : {{ ansible_facts['processor_vcpus'] }}
+
+    - name: Installer tree
+      ansible.builtin.package:
+        name: tree
+        state: present
+
+    - name: Message de fin
+      ansible.builtin.debug:
+        msg: "Préparation terminée sur {{ inventory_hostname }}"

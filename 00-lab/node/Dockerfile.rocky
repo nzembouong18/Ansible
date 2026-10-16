@@ -1,0 +1,17 @@
+# Nœud géré famille RedHat : Rocky Linux 9 (pour les labos multi-OS)
+FROM rockylinux:9
+ENV container=docker
+RUN dnf install -y systemd openssh-server python3 sudo iproute procps-ng cronie curl \
+    && dnf clean all \
+    && systemctl enable sshd \
+    && useradd -m -u 1000 ansible \
+    && echo 'ansible ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/ansible \
+    && chmod 440 /etc/sudoers.d/ansible \
+    && mkdir -p /home/ansible/.ssh && chown ansible:ansible /home/ansible/.ssh \
+    && ssh-keygen -A \
+    && printf 'StrictModes no\nPasswordAuthentication no\n' > /etc/ssh/sshd_config.d/lab.conf
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+STOPSIGNAL SIGRTMIN+3
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["/usr/sbin/init"]

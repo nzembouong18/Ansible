@@ -1,0 +1,25 @@
+---
+# Démo 3 — --check (simulation) et --diff (afficher les différences)
+# ansible-playbook demos/03-check-diff.yml            → applique
+# ansible-playbook demos/03-check-diff.yml --check --diff → simule et montre le diff
+- name: Check et diff
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Fichier de configuration d'exemple
+      ansible.builtin.copy:
+        dest: /tmp/demo-check.conf
+        content: |
+          # Géré par Ansible
+          port=8080
+          debug=false
+        mode: "0644"
+        force: false            # ne réécrit pas si le fichier existe déjà
+
+    - name: Forcer une ligne (lineinfile)
+      ansible.builtin.lineinfile:
+        path: /tmp/demo-check.conf
+        regexp: '^debug='
+        line: 'debug=true'

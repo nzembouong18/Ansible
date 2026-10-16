@@ -1,0 +1,27 @@
+---
+- name: Ordre d'exécution
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  pre_tasks:
+    - name: 1 - pre_task
+      ansible.builtin.debug: { msg: "pre_tasks" }
+      changed_when: true
+      notify: H
+
+  roles: []
+
+  tasks:
+    - name: 3 - task
+      ansible.builtin.debug: { msg: "tasks" }
+      changed_when: true
+      notify: H
+
+  post_tasks:
+    - name: 5 - post_task
+      ansible.builtin.debug: { msg: "post_tasks" }
+
+  handlers:
+    - name: H
+      ansible.builtin.debug: { msg: "handler (après chaque section)" }

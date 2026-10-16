@@ -1,0 +1,42 @@
+---
+- name: Types de variables
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    app_name: shop
+    http_port: 8080
+    debug_mode: false
+    packages: [nginx, git, curl]
+    db:
+      host: db1
+      port: 5432
+      users: [app, readonly]
+
+  tasks:
+    - name: Chaîne, entier, booléen
+      ansible.builtin.debug:
+        msg: "{{ app_name }} port={{ http_port }} debug={{ debug_mode }}"
+
+    - name: Liste
+      ansible.builtin.debug:
+        msg: "premier={{ packages[0] }} dernier={{ packages[-1] }} total={{ packages | length }}"
+
+    - name: Dictionnaire (deux notations)
+      ansible.builtin.debug:
+        msg: "{{ db.host }}:{{ db['port'] }} users={{ db.users | join(',') }}"
+
+    - name: Valeur par défaut si la variable n'existe pas
+      ansible.builtin.debug:
+        msg: "timeout={{ timeout | default(30) }}"
+
+    - name: Variable obligatoire (ERREUR ATTENDUE, tolérée ici pour la démo)
+      ansible.builtin.debug:
+        msg: "{{ cle_obligatoire | mandatory }}"
+      ignore_errors: true
+      register: obligatoire
+
+    - name: Boucle sur la liste
+      ansible.builtin.debug:
+        msg: "paquet {{ item }}"
+      loop: "{{ packages }}"
