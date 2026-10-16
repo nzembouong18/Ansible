@@ -1,0 +1,76 @@
+---
+- name: Paquets et services
+  hosts: all
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Cache apt (Debian)
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+      when: ansible_facts['os_family'] == 'Debian'
+
+    - name: Plusieurs paquets en un seul appel (rapide)
+      ansible.builtin.package:
+        name: [curl, jq, rsync, unzip]
+        state: present
+
+    - name: Paquet spécifique à la famille
+      ansible.builtin.apt:
+        name: [python3-venv]
+        state: present
+      when: ansible_facts['os_family'] == 'Debian'
+
+    - name: Version précise / dernière version  # noqa: package-latest
+      ansible.builtin.apt:
+        name: curl
+        state: latest
+      when: false        # exemple : n'exécutez pas en production sans réfléchir !
+
+    - name: Paquet Python (hors paquets système) dans un virtualenv
+      ansible.builtin.pip:
+        name: [requests]
+        virtualenv: /opt/venv-demo
+        virtualenv_command: python3 -m venv
+
+    - name: Service (module générique)
+      ansible.builtin.service:
+        name: cron
+        state: started
+        enabled: true
+
+    - name: Systemd (daemon-reload, masquer, etc.)
+      ansible.builtin.systemd_service:
+        name: cron
+        state: started
+        enabled: true
+        daemon_reload: true
+
+    - name: Unité systemd personnalisée
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/demo-hello.service
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=Service de démonstration
+
+          [Service]
+          Type=simple
+          ExecStart=/bin/sleep infinity
+          Restart=on-failure
+
+          [Install]
+          WantedBy=multi-user.target
+      notify: Recharger systemd
+
+    - name: Démarrer l'unité personnalisée
+      ansible.builtin.systemd_service:
+        name: demo-hello
+        state: started
+        enabled: true
+        daemon_reload: true
+
+  handlers:
+    - name: Recharger systemd
+      ansible.builtin.systemd_service:
+        daemon_reload: true

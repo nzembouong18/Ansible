@@ -1,0 +1,2 @@
+---
+db_password: "{{ hostvars[groups['dbservers'][0]]['vault_shop_password'] }}"

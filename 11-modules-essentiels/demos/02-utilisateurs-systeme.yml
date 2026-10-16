@@ -1,0 +1,67 @@
+---
+# Utilisateurs, groupes, sudoers, cron, sysctl... (exécuter sur le labo : nécessite become)
+- name: Utilisateurs et système
+  hosts: all
+  become: true
+  gather_facts: true
+  vars:
+    app_users:
+      - { name: alice, groups: [sudo], key: "ssh-ed25519 AAAAC3Nza...exemple alice@lab" }
+      - { name: bob, groups: [], key: "ssh-ed25519 AAAAC3Nza...exemple bob@lab" }
+
+  tasks:
+    - name: Groupe applicatif
+      ansible.builtin.group:
+        name: appteam
+        state: present
+
+    - name: Utilisateurs
+      ansible.builtin.user:
+        name: "{{ item.name }}"
+        groups: "{{ item.groups + ['appteam'] }}"
+        append: true
+        shell: /bin/bash
+        create_home: true
+        password_lock: true               # pas de mot de passe : connexion par clé
+      loop: "{{ app_users }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Clés SSH autorisées
+      ansible.posix.authorized_key:
+        user: "{{ item.name }}"
+        key: "{{ item.key }}"
+        state: present
+      loop: "{{ app_users }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Sudoers dédié, validé par visudo
+      ansible.builtin.copy:
+        dest: /etc/sudoers.d/appteam
+        content: "%appteam ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart app\n"
+        owner: root
+        group: root
+        mode: "0440"
+        validate: /usr/sbin/visudo -cf %s
+
+    - name: Tâche planifiée
+      ansible.builtin.cron:
+        name: "nettoyage des tmp applicatifs"
+        minute: "30"
+        hour: "2"
+        job: "find /tmp/app -mtime +7 -delete"
+        user: root
+
+    - name: Fuseau horaire
+      community.general.timezone:
+        name: Europe/Paris
+
+    - name: Paramètre noyau (sans écrire à chaud dans un conteneur)
+      ansible.posix.sysctl:
+        name: vm.swappiness
+        value: "10"
+        sysctl_file: /etc/sysctl.d/99-formation.conf
+        sysctl_set: false
+        state: present
+        reload: false

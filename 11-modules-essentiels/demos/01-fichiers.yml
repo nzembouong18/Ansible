@@ -1,0 +1,95 @@
+---
+- name: Modules de gestion de fichiers
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    wd: /tmp/demo-fichiers
+
+  tasks:
+    - name: Créer l'arborescence
+      ansible.builtin.file:
+        path: "{{ wd }}/{{ item }}"
+        state: directory
+        mode: "0755"
+      loop: [conf, data, backup]
+
+    - name: Lineinfile - garantir UNE ligne
+      ansible.builtin.lineinfile:
+        path: "{{ wd }}/conf/app.conf"
+        create: true
+        mode: "0644"
+        regexp: '^max_connections='
+        line: 'max_connections=200'
+
+    - name: Lineinfile - insérer après une ligne repère
+      ansible.builtin.lineinfile:
+        path: "{{ wd }}/conf/app.conf"
+        insertafter: '^max_connections='
+        line: 'timeout=30'
+
+    - name: Blockinfile - gérer un BLOC délimité par des marqueurs
+      ansible.builtin.blockinfile:
+        path: "{{ wd }}/conf/app.conf"
+        marker: "# {mark} ANSIBLE MANAGED BLOCK - hosts"
+        block: |
+          10.0.0.11 web1
+          10.0.0.12 web2
+
+    - name: Replace - remplacer par regex (toutes les occurrences)
+      ansible.builtin.replace:
+        path: "{{ wd }}/conf/app.conf"
+        regexp: '^timeout=(\d+)$'
+        replace: 'timeout=60'
+
+    - name: Stat - tester l'existence et les attributs
+      ansible.builtin.stat:
+        path: "{{ wd }}/conf/app.conf"
+        checksum_algorithm: sha256
+      register: st
+
+    - name: Afficher
+      ansible.builtin.debug:
+        msg: "existe={{ st.stat.exists }} taille={{ st.stat.size }} mode={{ st.stat.mode }}"
+
+    - name: Copy - contenu inline + sauvegarde
+      ansible.builtin.copy:
+        dest: "{{ wd }}/data/a.txt"
+        content: "version 1\n"
+        mode: "0644"
+        backup: true
+
+    - name: Find - rechercher des fichiers
+      ansible.builtin.find:
+        paths: "{{ wd }}"
+        patterns: ["*.txt", "*.conf"]
+        recurse: true
+      register: trouves
+
+    - name: Fichiers trouvés
+      ansible.builtin.debug:
+        msg: "{{ trouves.files | map(attribute='path') | sort | list }}"
+
+    - name: Archive - créer une archive
+      community.general.archive:
+        path: "{{ wd }}/conf"
+        dest: "{{ wd }}/backup/conf.tar.gz"
+        format: gz
+        mode: "0644"
+
+    - name: Unarchive - extraire (archive locale -> remote_src)
+      ansible.builtin.unarchive:
+        src: "{{ wd }}/backup/conf.tar.gz"
+        dest: "{{ wd }}/data"
+        remote_src: true
+
+    - name: File - lien symbolique
+      ansible.builtin.file:
+        src: "{{ wd }}/conf/app.conf"
+        dest: "{{ wd }}/current.conf"
+        state: link
+
+    - name: Nettoyage
+      ansible.builtin.file:
+        path: "{{ wd }}"
+        state: absent

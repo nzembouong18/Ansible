@@ -1,0 +1,2 @@
+---
+db_password: "{{ vault_shop_password }}"

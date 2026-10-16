@@ -1,0 +1,69 @@
+---
+- name: Réseau, HTTP, attentes
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Appel HTTP (API)
+      ansible.builtin.uri:
+        url: https://httpbin.org/json
+        method: GET
+        return_content: true
+        status_code: 200
+      register: api
+      ignore_errors: true  # noqa: ignore-errors  (pas d'accès Internet = pas de panique)
+
+    - name: POST JSON
+      ansible.builtin.uri:
+        url: https://httpbin.org/post
+        method: POST
+        body_format: json
+        body: { name: demo, version: 1 }
+        headers:
+          X-Token: "{{ api_token | default('xxx') }}"
+      when: false
+
+    - name: Télécharger un fichier avec vérification de checksum
+      ansible.builtin.get_url:
+        url: https://example.com/archive.tar.gz
+        dest: /tmp/archive.tar.gz
+        checksum: "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+        mode: "0644"
+      when: false
+
+    - name: Attendre qu'un port soit ouvert
+      ansible.builtin.wait_for:
+        host: 127.0.0.1
+        port: 22
+        timeout: 5
+      ignore_errors: true  # noqa: ignore-errors
+
+    - name: Attendre un fichier ou un texte dans un log
+      ansible.builtin.wait_for:
+        path: /etc/hostname
+        search_regex: '.+'
+        timeout: 5
+
+    - name: Lancer une commande avec garde idempotente
+      ansible.builtin.command:
+        cmd: touch /tmp/demo-guard
+        creates: /tmp/demo-guard
+
+    - name: Shell avec pipe (à éviter si un module existe)
+      ansible.builtin.shell: set -o pipefail; ls /etc | wc -l
+      args:
+        executable: /bin/bash
+      register: nb
+      changed_when: false
+
+    - name: Résultat
+      ansible.builtin.debug:
+        msg: "{{ nb.stdout }} entrées dans /etc"
+
+    - name: Git (clone/mise à jour d'un dépôt)
+      ansible.builtin.git:
+        repo: https://github.com/ansible/ansible-examples.git
+        dest: /tmp/ansible-examples
+        version: master
+        depth: 1
+      when: false

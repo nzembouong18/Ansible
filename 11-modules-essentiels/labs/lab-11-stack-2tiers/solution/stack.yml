@@ -1,0 +1,121 @@
+---
+- name: Base de données PostgreSQL
+  hosts: dbservers
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Installer PostgreSQL et ses dépendances
+      ansible.builtin.apt:
+        name: [postgresql, python3-psycopg2, acl]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Démarrer PostgreSQL
+      ansible.builtin.service:
+        name: postgresql
+        state: started
+        enabled: true
+
+    - name: Écouter sur toutes les interfaces
+      community.postgresql.postgresql_alter_system:
+        param: listen_addresses
+        value: "*"
+      become: true
+      become_user: postgres
+      notify: Redémarrer PostgreSQL
+
+    - name: Créer la base applicative
+      community.postgresql.postgresql_db:
+        name: "{{ db_name }}"
+        encoding: UTF8
+      become: true
+      become_user: postgres
+
+    - name: Créer l'utilisateur applicatif
+      community.postgresql.postgresql_user:
+        db: "{{ db_name }}"
+        name: "{{ db_user }}"
+        password: "{{ db_password }}"
+        encrypted: true
+      become: true
+      become_user: postgres
+      no_log: true
+
+    - name: Localiser pg_hba.conf
+      ansible.builtin.find:
+        paths: /etc/postgresql
+        patterns: pg_hba.conf
+        recurse: true
+      register: pg_hba_files
+
+    - name: Autoriser le sous-réseau du labo
+      community.postgresql.postgresql_pg_hba:
+        dest: "{{ pg_hba_files.files[0].path }}"
+        contype: host
+        databases: "{{ db_name }}"
+        users: "{{ db_user }}"
+        source: "{{ db_allowed_cidr }}"
+        method: scram-sha-256
+        state: present
+      notify: Redémarrer PostgreSQL
+
+    - name: Appliquer la configuration maintenant
+      ansible.builtin.meta: flush_handlers
+
+  handlers:
+    - name: Redémarrer PostgreSQL
+      ansible.builtin.service:
+        name: postgresql
+        state: restarted
+
+- name: Serveurs web
+  hosts: webservers
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Installer nginx et le client PostgreSQL
+      ansible.builtin.apt:
+        name: [nginx, postgresql-client]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Répertoire de configuration applicative
+      ansible.builtin.file:
+        path: /etc/app
+        state: directory
+        mode: "0750"
+
+    - name: Déposer le fichier d'environnement
+      ansible.builtin.template:
+        src: db.env.j2
+        dest: /etc/app/db.env
+        owner: root
+        group: root
+        mode: "0640"
+      no_log: true
+
+- name: Vérification de bout en bout
+  hosts: webservers
+  become: false
+  gather_facts: false
+  tasks:
+    - name: Interroger PostgreSQL depuis le serveur web
+      ansible.builtin.command: >
+        psql -h {{ hostvars[groups['dbservers'][0]]['ansible_facts']['default_ipv4']['address'] }}
+        -U {{ db_user }} -d {{ db_name }} -tAc "SELECT 1;"
+      environment:
+        PGPASSWORD: "{{ db_password }}"
+      register: requete
+      changed_when: false
+      retries: 5
+      delay: 3
+      until: requete.rc == 0
+      no_log: true
+
+    - name: Confirmer le résultat
+      ansible.builtin.assert:
+        that: requete.stdout | trim == '1'
+        success_msg: "Connectivité web -> base OK"
+        fail_msg: "La base ne répond pas correctement"

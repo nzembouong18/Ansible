@@ -1,0 +1,4 @@
+---
+db_name: shop
+db_user: shop_app
+db_allowed_cidr: 172.16.0.0/12      # plage des réseaux Docker du labo (à restreindre en production !)
