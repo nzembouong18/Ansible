@@ -1,0 +1,4 @@
+---
+- name: Journaliser le changement de motd
+  ansible.builtin.debug:
+    msg: "motd mis à jour sur {{ inventory_hostname }}"

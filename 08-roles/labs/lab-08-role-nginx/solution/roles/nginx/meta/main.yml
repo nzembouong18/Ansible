@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  role_name: nginx
+  author: formation-ansible
+  description: Installe et configure nginx (Debian/Ubuntu et RedHat/Rocky).
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: Ubuntu
+      versions: [jammy, noble]
+    - name: EL
+      versions: ["8", "9"]
+  galaxy_tags: [web, nginx]
+dependencies: []

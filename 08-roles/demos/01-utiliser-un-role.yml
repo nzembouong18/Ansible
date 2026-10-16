@@ -1,0 +1,10 @@
+---
+- name: Utiliser le rôle motd
+  hosts: localhost
+  connection: local
+  gather_facts: true
+  roles:
+    - role: motd
+      vars:
+        motd_path: /tmp/demo-motd
+        motd_owner: equipe-demo

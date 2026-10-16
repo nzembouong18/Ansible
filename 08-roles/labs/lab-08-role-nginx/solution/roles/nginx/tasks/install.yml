@@ -1,0 +1,11 @@
+---
+- name: Mettre à jour le cache apt
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Installer le paquet nginx
+  ansible.builtin.package:
+    name: "{{ __nginx_package }}"
+    state: present

@@ -1,0 +1,37 @@
+---
+# Trois façons d'appeler un rôle
+- name: Modes d'appel
+  hosts: localhost
+  connection: local
+  gather_facts: true
+  vars:
+    motd_path: /tmp/demo-motd2
+
+  # 1) Section "roles:" : exécutés AVANT tasks:
+  roles:
+    - role: motd
+      motd_message: "via roles:"
+
+  tasks:
+    # 2) import_role : statique (analysé au chargement, tags hérités)
+    - name: Import statique
+      ansible.builtin.import_role:
+        name: motd
+      vars:
+        motd_message: "via import_role"
+
+    # 3) include_role : dynamique (conditions/boucles possibles)
+    - name: Include dynamique en boucle
+      ansible.builtin.include_role:
+        name: motd
+      vars:
+        motd_message: "via include_role {{ item }}"
+        motd_path: "/tmp/demo-motd-{{ item }}"
+      loop: [a, b]
+
+    # Appel partiel d'un rôle : seulement un fichier de tâches
+    - name: Exécuter un sous-ensemble du rôle
+      ansible.builtin.include_role:
+        name: motd
+        tasks_from: main
+      when: false

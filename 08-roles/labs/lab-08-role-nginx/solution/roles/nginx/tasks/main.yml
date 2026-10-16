@@ -1,0 +1,33 @@
+---
+- name: Valider les paramètres du rôle
+  ansible.builtin.assert:
+    that:
+      - nginx_port | int > 0
+      - nginx_port | int < 65536
+      - nginx_extra_headers is mapping
+    fail_msg: "nginx_port doit être un entier entre 1 et 65535 et nginx_extra_headers un dictionnaire"
+    quiet: true
+  tags: [always]
+
+- name: Charger les variables spécifiques à l'OS
+  ansible.builtin.include_vars: "{{ lookup('ansible.builtin.first_found', __nginx_vars_search) }}"
+  vars:
+    __nginx_vars_search:
+      files:
+        - "{{ ansible_facts['distribution'] }}.yml"
+        - "{{ ansible_facts['os_family'] }}.yml"
+        - default.yml
+      paths: [vars]
+  tags: [always]
+
+- name: Installer nginx
+  ansible.builtin.import_tasks: install.yml
+  tags: [nginx_install]
+
+- name: Configurer nginx
+  ansible.builtin.import_tasks: configure.yml
+  tags: [nginx_configure]
+
+- name: Gérer le service nginx
+  ansible.builtin.import_tasks: service.yml
+  tags: [nginx_service]

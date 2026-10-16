@@ -1,0 +1,38 @@
+---
+- name: Créer la racine web
+  ansible.builtin.file:
+    path: "{{ nginx_root }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Déployer la page d'accueil
+  ansible.builtin.copy:
+    dest: "{{ nginx_root }}/index.html"
+    content: "{{ nginx_index_content }}"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Retirer le site par défaut de Debian
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  when: ansible_facts['os_family'] == 'Debian'
+  notify: "Nginx : recharger"
+
+- name: Déployer le vhost
+  ansible.builtin.template:
+    src: site.conf.j2
+    dest: "{{ __nginx_site_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: "Nginx : recharger"
+
+- name: Valider la configuration complète
+  ansible.builtin.command: nginx -t
+  register: __nginx_test
+  changed_when: false
+  check_mode: false

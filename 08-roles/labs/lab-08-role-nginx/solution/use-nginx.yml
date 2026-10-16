@@ -1,0 +1,11 @@
+---
+- name: Utiliser le rôle nginx
+  hosts: webservers
+  become: true
+  roles:
+    - role: nginx
+      vars:
+        nginx_port: 80
+        nginx_extra_headers:
+          X-Frame-Options: DENY
+          X-Content-Type-Options: nosniff

@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  role_name: motd
+  author: formation-ansible
+  description: Dépose un message du jour (démo de la formation).
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: Ubuntu
+      versions: [all]
+    - name: EL
+      versions: [all]
+  galaxy_tags: [motd, demo]
+dependencies: []

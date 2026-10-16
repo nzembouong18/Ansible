@@ -1,0 +1,12 @@
+---
+# Interface publique du rôle : tout ce qui est ici peut être surchargé.
+nginx_port: 80
+nginx_server_name: "_"
+nginx_root: /var/www/html
+nginx_index_content: |
+  <!doctype html>
+  <html lang="fr"><head><meta charset="utf-8"><title>{{ inventory_hostname }}</title></head>
+  <body><h1>{{ inventory_hostname }}</h1><p>Servi par nginx, géré par Ansible.</p></body></html>
+nginx_worker_connections: 1024
+nginx_extra_headers: {}
+nginx_enabled: true

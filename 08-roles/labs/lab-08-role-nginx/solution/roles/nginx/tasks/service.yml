@@ -1,0 +1,6 @@
+---
+- name: Démarrer nginx et gérer son activation au boot
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: "{{ nginx_enabled }}"

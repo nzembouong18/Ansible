@@ -1,0 +1,15 @@
+# {{ ansible_managed }}
+server {
+    listen {{ nginx_port }};
+    server_name {{ nginx_server_name }};
+    root {{ nginx_root }};
+    index index.html;
+
+{% for header, value in nginx_extra_headers.items() %}
+    add_header {{ header }} "{{ value }}" always;
+{% endfor %}
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}

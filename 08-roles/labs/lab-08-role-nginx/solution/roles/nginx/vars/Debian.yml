@@ -1,0 +1,5 @@
+---
+__nginx_package: nginx
+__nginx_user: www-data
+__nginx_conf_dir: /etc/nginx
+__nginx_site_path: /etc/nginx/conf.d/default-site.conf

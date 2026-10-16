@@ -1,0 +1,7 @@
+{{ ansible_managed }}
+{{ motd_message }}
+Propriétaire : {{ motd_owner }}
+{% if motd_show_facts | bool %}
+Hôte : {{ ansible_facts['hostname'] | default(inventory_hostname) }}
+OS   : {{ ansible_facts['distribution'] | default('?') }} {{ ansible_facts['distribution_version'] | default('') }}
+{% endif %}

@@ -1,0 +1,16 @@
+---
+- name: Valider les variables du rôle
+  ansible.builtin.assert:
+    that:
+      - motd_message | length > 0
+      - motd_path is string
+    quiet: true
+
+- name: Déployer le message du jour
+  ansible.builtin.template:
+    src: motd.j2
+    dest: "{{ motd_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Journaliser le changement de motd
