@@ -1,0 +1,6 @@
+---
+- name: Redémarrer webapp
+  ansible.builtin.service:
+    name: webapp
+    state: restarted
+  when: webapp_manage_service | bool

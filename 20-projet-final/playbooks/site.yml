@@ -1,0 +1,17 @@
+---
+- name: Socle commun
+  hosts: all
+  become: "{{ not (ansible_connection | default('ssh') == 'local') }}"
+  roles:
+    - role: common
+      vars:
+        common_manage_packages: "{{ ansible_connection | default('ssh') != 'local' }}"
+        common_motd_path: "{{ '/tmp/projet-final-motd-' ~ inventory_hostname if ansible_connection | default('ssh') == 'local' else '/etc/motd' }}"
+
+- name: Application (mise à jour progressive)
+  hosts: webservers
+  become: "{{ not (ansible_connection | default('ssh') == 'local') }}"
+  serial: 1
+  max_fail_percentage: 0
+  roles:
+    - webapp

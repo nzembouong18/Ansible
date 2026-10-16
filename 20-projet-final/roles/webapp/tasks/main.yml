@@ -1,0 +1,65 @@
+---
+- name: Valider les paramètres
+  ansible.builtin.assert:
+    that:
+      - webapp_version is match('^[0-9]+\.[0-9]+\.[0-9]+$')
+      - webapp_keep_releases | int >= 1
+    quiet: true
+
+- name: Créer l'utilisateur applicatif
+  ansible.builtin.user:
+    name: "{{ webapp_user }}"
+    system: true
+    shell: /usr/sbin/nologin
+    create_home: false
+  when: webapp_user | length > 0
+
+- name: Créer l'arborescence des releases
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ webapp_root }}"
+    - "{{ webapp_root }}/releases"
+    - "{{ webapp_root }}/releases/{{ webapp_version }}"
+
+- name: Déployer la release
+  ansible.builtin.template:
+    src: index.html.j2
+    dest: "{{ webapp_root }}/releases/{{ webapp_version }}/index.html"
+    mode: "0644"
+
+- name: Déployer la configuration (contient un secret)
+  ansible.builtin.template:
+    src: app.conf.j2
+    dest: "{{ webapp_root }}/releases/{{ webapp_version }}/app.conf"
+    mode: "0640"
+  no_log: true
+
+- name: Basculer le lien current (atomique)
+  ansible.builtin.file:
+    src: "{{ webapp_root }}/releases/{{ webapp_version }}"
+    dest: "{{ webapp_root }}/current"
+    state: link
+    force: true
+  notify: Redémarrer webapp
+
+- name: Lister les releases existantes
+  ansible.builtin.find:
+    paths: "{{ webapp_root }}/releases"
+    file_type: directory
+    recurse: false
+  register: webapp_releases
+
+- name: Supprimer les anciennes releases (on garde les N plus récentes)
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ (webapp_releases.files | sort(attribute='mtime', reverse=true))[webapp_keep_releases | int:] }}"
+  loop_control:
+    label: "{{ item.path | basename }}"
+
+- name: Health check (fichier servi)
+  ansible.builtin.command: grep -q "{{ webapp_version }}" "{{ webapp_root }}/current/index.html"
+  changed_when: false

@@ -1,0 +1,22 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Lire la page servie
+      ansible.builtin.slurp:
+        src: /tmp/molecule-webapp/current/index.html
+      register: page
+
+    - name: La version déployée est la bonne
+      ansible.builtin.assert:
+        that: "'Version 2.0.0' in (page.content | b64decode)"
+
+    - name: Le fichier de configuration est protégé
+      ansible.builtin.stat:
+        path: /tmp/molecule-webapp/current/app.conf
+      register: conf
+
+    - name: Mode 0640
+      ansible.builtin.assert:
+        that: conf.stat.mode == '0640'

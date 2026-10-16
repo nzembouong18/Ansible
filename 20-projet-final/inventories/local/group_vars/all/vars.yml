@@ -1,0 +1,9 @@
+---
+app_env: local
+webapp_version: "1.2.0"
+webapp_message: "Test local"
+webapp_keep_releases: 2
+webapp_root: /tmp/projet-final/{{ inventory_hostname }}
+webapp_manage_service: false
+webapp_user: ""                 # pas de création d'utilisateur en local
+webapp_db_password: "{{ vault_webapp_db_password }}"

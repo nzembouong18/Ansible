@@ -1,0 +1,26 @@
+---
+driver:
+  name: default
+  options:
+    managed: false
+platforms:
+  - name: localhost
+provisioner:
+  name: ansible
+  env:
+    ANSIBLE_ROLES_PATH: "${MOLECULE_PROJECT_DIRECTORY}/.."
+  inventory:
+    hosts:
+      all:
+        hosts:
+          localhost:
+            ansible_connection: local
+            ansible_python_interpreter: "{{ ansible_playbook_python }}"
+        vars:
+          webapp_root: /tmp/molecule-webapp
+          webapp_user: ""
+          webapp_manage_service: false
+          webapp_version: "2.0.0"
+          webapp_db_password: "test-secret"
+verifier:
+  name: ansible

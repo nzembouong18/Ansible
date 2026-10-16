@@ -1,0 +1,14 @@
+---
+- name: Installer les paquets de base
+  ansible.builtin.package:
+    name: "{{ common_packages }}"
+    state: present
+  when: common_manage_packages | bool
+
+- name: Déposer le message du jour
+  ansible.builtin.copy:
+    dest: "{{ common_motd_path }}"
+    content: "{{ common_motd }}\n"
+    owner: root
+    group: root
+    mode: "0644"

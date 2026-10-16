@@ -1,0 +1,9 @@
+---
+webapp_version: "1.0.0"
+webapp_message: "Bonjour"
+webapp_root: /opt/webapp
+webapp_user: webapp
+webapp_port: 8080
+webapp_keep_releases: 3
+webapp_manage_service: true
+webapp_db_password: ""

@@ -1,0 +1,6 @@
+---
+app_env: prod
+webapp_version: "1.0.0"
+webapp_message: "Production"
+webapp_keep_releases: 5
+webapp_db_password: "{{ vault_webapp_db_password }}"

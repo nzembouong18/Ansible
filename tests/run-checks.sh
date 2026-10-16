@@ -34,6 +34,11 @@ run "render.yml dev" bash -c "cd 17-windows-reseau-cloud-conteneurs/labs/lab-17-
 run "render.yml prod (ingress inclus)" bash -c "cd 17-windows-reseau-cloud-conteneurs/labs/lab-17-docker-k8s/solution && ansible-playbook -i localhost, render.yml -e env=prod && test -f out/prod/ingress.yml"
 run "refus de l'image :latest" bash -c "cd 17-windows-reseau-cloud-conteneurs/labs/lab-17-docker-k8s/solution && ! ansible-playbook -i localhost, render.yml -e env=prod -e image=nginx:latest"
 
+echo "== Module 20 : projet final (environnement local)"
+run "site.yml (local)" bash -c "cd 20-projet-final && ansible-playbook -i inventories/local/hosts.yml playbooks/site.yml --vault-password-file .vault_pass_lab"
+run "site.yml idempotent" bash -c "cd 20-projet-final && ansible-playbook -i inventories/local/hosts.yml playbooks/site.yml --vault-password-file .vault_pass_lab | grep -E '^web1' | grep -q 'changed=0'"
+run "molecule webapp" bash -c "cd 20-projet-final/roles/webapp && molecule test"
+
 echo "== Module 14 : tests unitaires du module config_kv"
 run "pytest config_kv" python3 -m pytest -q 14-developpement/labs/lab-14-module-kv/solution/tests
 
