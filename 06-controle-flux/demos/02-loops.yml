@@ -1,0 +1,62 @@
+---
+- name: Boucles
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    utilisateurs:
+      - { name: alice, groups: [sudo, dev] }
+      - { name: bob, groups: [dev] }
+    ports:
+      http: 80
+      https: 443
+
+  tasks:
+    - name: Boucle simple
+      ansible.builtin.debug:
+        msg: "paquet {{ item }}"
+      loop: [git, curl, htop]
+
+    - name: Liste de dictionnaires avec label lisible
+      ansible.builtin.debug:
+        msg: "{{ item.name }} -> {{ item.groups | join(',') }}"
+      loop: "{{ utilisateurs }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Dictionnaire vers liste
+      ansible.builtin.debug:
+        msg: "{{ item.key }}={{ item.value }}"
+      loop: "{{ ports | dict2items }}"
+
+    - name: Plage et index
+      ansible.builtin.debug:
+        msg: "{{ idx }} : {{ n }}"
+      loop: "{{ range(10, 40, 10) | list }}"
+      loop_control:
+        loop_var: n
+        index_var: idx
+
+    - name: Produit cartésien
+      ansible.builtin.debug:
+        msg: "{{ item.0 }}-{{ item.1 }}"
+      loop: "{{ ['web', 'db'] | product(['prod', 'dev']) | list }}"
+
+    - name: Boucle avec registre
+      ansible.builtin.command: echo {{ item }}
+      loop: [un, deux]
+      register: sorties
+      changed_when: false
+
+    - name: Exploiter les résultats de la boucle
+      ansible.builtin.debug:
+        msg: "{{ sorties.results | map(attribute='stdout') | list }}"
+
+    - name: Réessayer jusqu'à ce qu'un fichier apparaisse (until)
+      ansible.builtin.stat:
+        path: /tmp/demo-until-marker
+      register: marker
+      until: marker.stat.exists
+      retries: 3
+      delay: 1
+      ignore_errors: true

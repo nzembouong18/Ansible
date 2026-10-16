@@ -1,0 +1,33 @@
+---
+- name: Block, rescue, always
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    simulate_failure: true
+
+  tasks:
+    - name: Déploiement protégé
+      block:
+        - name: Étape 1 OK
+          ansible.builtin.debug:
+            msg: "Étape 1"
+
+        - name: Étape 2 - échoue si simulate_failure
+          ansible.builtin.command: /bin/false
+          when: simulate_failure | bool
+          changed_when: false
+
+        - name: Étape 3 (non atteinte en cas d'échec)
+          ansible.builtin.debug:
+            msg: "Étape 3"
+
+      rescue:
+        - name: Rollback
+          ansible.builtin.debug:
+            msg: "Rollback après échec de '{{ ansible_failed_task.name }}'"
+
+      always:
+        - name: Nettoyage final
+          ansible.builtin.debug:
+            msg: "always : exécuté dans tous les cas"

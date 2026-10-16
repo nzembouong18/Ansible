@@ -1,5 +1,5 @@
 ---
-- name: set_fact, include_vars, omit
+- name: Set_fact, include_vars, omit
   hosts: localhost
   connection: local
   gather_facts: false

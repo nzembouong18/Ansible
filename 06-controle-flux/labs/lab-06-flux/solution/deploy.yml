@@ -1,0 +1,86 @@
+---
+- name: Lab 06 - Déploiement résilient
+  hosts: localhost
+  connection: local
+  gather_facts: true
+  vars:
+    app_root: /tmp/app
+    app_files: [app.txt, config.txt, VERSION]
+
+  tasks:
+    - name: Vérifier les prérequis
+      ansible.builtin.assert:
+        that:
+          - release is defined
+          - release is match('^v[0-9]+\.[0-9]+$')
+          - ansible_facts['memtotal_mb'] >= 512
+        fail_msg: "release absente/invalide ou RAM insuffisante"
+
+    - name: Préparer la release
+      ansible.builtin.file:
+        path: "{{ app_root }}/releases/{{ release }}"
+        state: directory
+        mode: "0755"
+
+    - name: Créer les fichiers de la release
+      ansible.builtin.copy:
+        dest: "{{ app_root }}/releases/{{ release }}/{{ item }}"
+        content: "{{ item }} - {{ release }}\n"
+        mode: "0644"
+      loop: "{{ app_files }}"
+      loop_control:
+        label: "{{ item }}"
+
+    - name: Déployer avec rollback
+      block:
+        - name: Mémoriser la release actuelle
+          ansible.builtin.stat:
+            path: "{{ app_root }}/current"
+          register: ancien
+
+        - name: Basculer le lien current
+          ansible.builtin.file:
+            src: "{{ app_root }}/releases/{{ release }}"
+            dest: "{{ app_root }}/current"
+            state: link
+            force: true
+
+        - name: Health check
+          ansible.builtin.command: grep -q {{ release }} {{ app_root }}/current/app.txt
+          changed_when: false
+          failed_when: release == 'v9.9'
+
+        - name: Noter le succès
+          ansible.builtin.set_fact:
+            resultat: "OK"
+
+      rescue:
+        - name: Restaurer l'ancienne release
+          ansible.builtin.file:
+            src: "{{ ancien.stat.lnk_source }}"
+            dest: "{{ app_root }}/current"
+            state: link
+            force: true
+          when: ancien.stat.islnk | default(false)
+
+        - name: Noter l'échec
+          ansible.builtin.set_fact:
+            resultat: "ECHEC (rollback)"
+
+        - name: Échouer clairement
+          ansible.builtin.fail:
+            msg: "Release {{ release }} refusée, rollback effectué"
+
+      always:
+        - name: Journaliser
+          ansible.builtin.lineinfile:
+            path: "{{ app_root }}/deploy.log"
+            line: "{{ release }} : {{ resultat | default('ECHEC (rollback)') }}"
+            create: true
+            mode: "0644"
+
+    - name: Purger tout (uniquement avec --tags purge)
+      ansible.builtin.file:
+        path: "{{ app_root }}"
+        state: absent
+      tags: [never, purge]

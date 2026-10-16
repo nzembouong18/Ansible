@@ -1,0 +1,44 @@
+---
+- name: Conditions
+  hosts: localhost
+  connection: local
+  gather_facts: true
+  vars:
+    env: prod
+    flag_string: "false"
+    memoire_min: 1024
+
+  tasks:
+    - name: Condition simple sur un fact
+      ansible.builtin.debug:
+        msg: "Famille Debian"
+      when: ansible_facts['os_family'] == 'Debian'
+
+    - name: Conditions multiples (ET)
+      ansible.builtin.debug:
+        msg: "Assez de RAM et en prod"
+      when:
+        - ansible_facts['memtotal_mb'] > memoire_min
+        - env == 'prod'
+
+    - name: OU et appartenance
+      ansible.builtin.debug:
+        msg: "prod ou staging"
+      when: env in ['prod', 'staging']
+
+    # PIÈGE : "when: flag_string" (chaîne "false") était VRAIE avant ansible-core 2.19
+    # et provoque une ERREUR depuis (les conditions doivent être booléennes).
+    - name: CORRECT - conversion explicite en booléen
+      ansible.builtin.debug:
+        msg: "Je ne m'affiche pas"
+      when: flag_string | bool
+
+    - name: Variable non définie
+      ansible.builtin.debug:
+        msg: "optionnelle absente"
+      when: variable_optionnelle is not defined
+
+    - name: Comparaison de versions
+      ansible.builtin.debug:
+        msg: "Python >= 3.8"
+      when: ansible_facts['python_version'] is version('3.8', '>=')

@@ -1,3 +1,4 @@
+---
 # Labo Ansible : 1 nœud de contrôle + 3 nœuds Ubuntu (+ 1 Rocky en option : profil "rocky")
 # Usage : ./lab.sh up   puis   ./lab.sh shell
 x-node: &node

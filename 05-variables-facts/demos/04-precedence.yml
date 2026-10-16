@@ -17,13 +17,13 @@
       ansible.builtin.debug:
         var: niveau
 
-    - name: vars de tâche écrase vars_files
+    - name: Les vars de tâche écrasent vars_files
       ansible.builtin.debug:
         var: niveau
       vars:
         niveau: task_vars
 
-    - name: set_fact écrase vars de tâche (et vars du play)
+    - name: Le set_fact écrase les vars de tâche (et vars du play)
       ansible.builtin.set_fact:
         niveau: set_fact
 

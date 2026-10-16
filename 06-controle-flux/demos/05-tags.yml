@@ -1,0 +1,25 @@
+---
+# ansible-playbook 05-tags.yml --list-tags
+# ansible-playbook 05-tags.yml --tags config
+# ansible-playbook 05-tags.yml --skip-tags install
+# ansible-playbook 05-tags.yml --tags dangereux
+- name: Tags
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Installer
+      ansible.builtin.debug: { msg: "install" }
+      tags: [install]
+
+    - name: Configurer
+      ansible.builtin.debug: { msg: "config" }
+      tags: [config]
+
+    - name: Toujours exécuté
+      ansible.builtin.debug: { msg: "always" }
+      tags: [always]
+
+    - name: Jamais sauf demande explicite
+      ansible.builtin.debug: { msg: "action dangereuse" }
+      tags: [never, dangereux]

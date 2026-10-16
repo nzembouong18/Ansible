@@ -1,0 +1,29 @@
+---
+- name: Gestion des erreurs
+  hosts: localhost
+  connection: local
+  gather_facts: true
+
+  tasks:
+    - name: Assert - valider des prérequis
+      ansible.builtin.assert:
+        that:
+          - ansible_facts['memtotal_mb'] >= 512
+          - ansible_facts['processor_vcpus'] >= 1
+        fail_msg: "Machine trop petite"
+        success_msg: "Prérequis OK"
+
+    - name: Failed_when - rc=1 de grep est normal ("pas trouvé")
+      ansible.builtin.command: grep -c zzz-introuvable /etc/hostname
+      register: g
+      failed_when: g.rc > 1
+      changed_when: false
+
+    - name: Ignore_errors - continue malgré l'échec  # noqa: ignore-errors
+      ansible.builtin.command: /bin/false
+      ignore_errors: true
+      changed_when: false
+
+    - name: Tâche suivante exécutée normalement
+      ansible.builtin.debug:
+        msg: "On est toujours là"
