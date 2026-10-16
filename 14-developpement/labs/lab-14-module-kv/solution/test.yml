@@ -1,0 +1,38 @@
+---
+# ansible-playbook -i localhost, -c local test.yml [--check --diff]
+- name: Démonstration du module config_kv
+  hosts: all
+  gather_facts: false
+  vars:
+    conf: /tmp/lab14/app.conf
+  tasks:
+    - name: Préparer le dossier
+      ansible.builtin.file:
+        path: /tmp/lab14
+        state: directory
+        mode: "0755"
+
+    - name: Imposer des paramètres
+      config_kv:
+        path: "{{ conf }}"
+        mode: "0640"
+        settings:
+          max_connections: 200
+          log_level: warn
+      register: r1
+
+    - name: Afficher ce qui a changé
+      ansible.builtin.debug:
+        msg: "ajoutées={{ r1.added }} mises à jour={{ r1.updated }}"
+
+    - name: Appel identique (doit être idempotent)
+      config_kv:
+        path: "{{ conf }}"
+        settings:
+          max_connections: 200
+          log_level: warn
+      register: r2
+
+    - name: Vérifier l'idempotence
+      ansible.builtin.assert:
+        that: not r2.changed

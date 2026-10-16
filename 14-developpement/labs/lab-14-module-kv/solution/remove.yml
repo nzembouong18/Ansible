@@ -1,0 +1,16 @@
+---
+# Démonstration de state=absent et de la mise à jour (change l'état : à lancer après test.yml)
+- name: Mise à jour puis suppression
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Mettre à jour une valeur
+      config_kv:
+        path: /tmp/lab14/app.conf
+        settings: { log_level: debug }
+
+    - name: Retirer une clé
+      config_kv:
+        path: /tmp/lab14/app.conf
+        settings: { max_connections: "" }
+        state: absent

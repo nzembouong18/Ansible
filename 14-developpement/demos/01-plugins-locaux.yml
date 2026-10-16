@@ -1,0 +1,49 @@
+---
+# ANSIBLE_CALLBACKS_ENABLED=task_summary ansible-playbook 01-plugins-locaux.yml
+- name: Module, filtres et lookup locaux
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Module custom (library/ à côté du playbook) - création
+      file_stamp:
+        path: /tmp/demo-stamp.txt
+        text: "déployé par Ansible"
+        mode: "0640"
+      register: s1
+
+    - name: Idempotence - second appel identique
+      file_stamp:
+        path: /tmp/demo-stamp.txt
+        text: "déployé par Ansible"
+        mode: "0640"
+      register: s2
+
+    - name: Vérifier changed true puis false
+      ansible.builtin.assert:
+        that:
+          - s1.changed or s2 is not changed
+          - not s2.changed
+
+    - name: Mode check + diff
+      file_stamp:
+        path: /tmp/demo-stamp.txt
+        text: "nouvelle version"
+      check_mode: true
+      diff: true
+
+    - name: Filtres locaux
+      ansible.builtin.debug:
+        msg:
+          - "{{ ['a', 'b,c', 'd'] | to_csv_line }}"
+          - "{{ 'motdepasse' | mask_secret(3) }}"
+
+    - name: Lookup local
+      ansible.builtin.debug:
+        msg: "compteur = {{ lookup('counter', '/tmp/demo.counter') }}"
+
+    - name: Nettoyage
+      file_stamp:
+        path: /tmp/demo-stamp.txt
+        text: x
+        state: absent
