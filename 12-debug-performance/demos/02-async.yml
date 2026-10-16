@@ -1,0 +1,31 @@
+---
+# Tâches longues : async + poll
+- name: Asynchrone
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Lancer 3 tâches longues en parallèle (fire and forget)
+      ansible.builtin.command: sleep 3
+      async: 30          # durée maximale autorisée
+      poll: 0            # ne pas attendre
+      changed_when: false
+      register: jobs
+      loop: [1, 2, 3]
+
+    - name: Attendre la fin de toutes les tâches
+      ansible.builtin.async_status:
+        jid: "{{ item.ansible_job_id }}"
+      register: etat
+      until: etat.finished
+      retries: 15
+      delay: 1
+      loop: "{{ jobs.results }}"
+      loop_control:
+        label: "{{ item.ansible_job_id }}"
+
+    - name: Tâche longue avec poll (attente active mais sans timeout SSH)
+      ansible.builtin.command: sleep 2
+      async: 20
+      poll: 1
+      changed_when: false

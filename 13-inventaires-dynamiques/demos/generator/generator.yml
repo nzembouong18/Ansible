@@ -1,0 +1,15 @@
+---
+# Plugin "generator" : génère des hôtes par combinaisons (utile pour des tests/labos)
+plugin: ansible.builtin.generator
+hosts:
+  name: "{{ operation }}-{{ application }}-{{ environment }}"
+  parents:
+    - name: "{{ operation }}-{{ application }}"
+      parents:
+        - name: "{{ operation }}"
+        - name: "{{ application }}"
+    - name: "{{ environment }}"
+layers:
+  operation: [build, launch]
+  environment: [dev, test]
+  application: [web, api]

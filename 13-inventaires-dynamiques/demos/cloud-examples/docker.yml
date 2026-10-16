@@ -1,0 +1,8 @@
+---
+# Hôtes = conteneurs Docker en cours d'exécution (collection community.docker)
+plugin: community.docker.docker_containers
+docker_host: unix:///var/run/docker.sock
+connection_type: ssh        # ou docker-api
+keyed_groups:
+  - key: docker_config.Labels['com.docker.compose.service']
+    prefix: svc

@@ -1,0 +1,12 @@
+---
+# Cache de facts : relancer deux fois et comparer les temps
+#   ANSIBLE_CACHE_PLUGIN=ansible.builtin.jsonfile ANSIBLE_CACHE_PLUGIN_CONNECTION=/tmp/facts-cache \
+#   ANSIBLE_CACHE_PLUGIN_TIMEOUT=3600 ANSIBLE_GATHERING=smart ansible-playbook 04-facts-cache.yml
+- name: Facts en cache
+  hosts: localhost
+  connection: local
+  gather_facts: true            # "smart" : ne collecte que si absent du cache
+  tasks:
+    - name: Utiliser un fact
+      ansible.builtin.debug:
+        msg: "{{ ansible_facts['distribution'] }}"

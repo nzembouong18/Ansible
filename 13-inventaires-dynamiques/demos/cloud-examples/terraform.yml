@@ -1,0 +1,4 @@
+---
+# Lit l'état Terraform (collection cloud.terraform) : le provisionnement alimente Ansible
+plugin: cloud.terraform.terraform_provider
+project_path: ../../../terraform/infra

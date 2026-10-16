@@ -1,0 +1,6 @@
+name,ip,role,env,datacenter,cpu
+web-01,10.0.1.11,web,prod,par,4
+web-02,10.0.1.12,web,prod,lon,8
+db-01,10.0.2.21,db,prod,par,16
+web-stg,10.0.9.11,web,staging,par,2
+cache-01,10.0.3.31,cache,prod,lon,4

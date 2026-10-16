@@ -1,0 +1,23 @@
+---
+- name: Playbook lent (avant optimisation)
+  hosts: workers
+  gather_facts: true
+  tasks:
+    - name: Initialiser le fichier de résultat
+      ansible.builtin.file:
+        path: /tmp/lab12-resultat.txt
+        state: absent
+      run_once: true
+
+    - name: Cinq opérations de trois secondes en séquence
+      ansible.builtin.command: sleep 3
+      changed_when: false
+      loop: [1, 2, 3, 4, 5]
+
+    - name: Enregistrer le résultat de l'hôte
+      ansible.builtin.lineinfile:
+        path: /tmp/lab12-resultat.txt
+        line: "{{ inventory_hostname }} terminé"
+        create: true
+        mode: "0644"
+      throttle: 1

@@ -1,0 +1,34 @@
+---
+# Boîte à outils de débogage
+#   ansible-playbook 01-debug-outils.yml -v        (résultats des modules)
+#   ansible-playbook 01-debug-outils.yml -vvv      (connexion, commandes SSH)
+#   ansible-playbook 01-debug-outils.yml --step    (confirmer chaque tâche)
+- name: Débogage
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    cfg: { port: 8080, hosts: [a, b] }
+
+  tasks:
+    - name: Afficher une variable entière
+      ansible.builtin.debug:
+        var: cfg
+
+    - name: Afficher un message n'apparaissant qu'avec -vv
+      ansible.builtin.debug:
+        msg: "détail technique"
+        verbosity: 2
+
+    - name: Lister toutes les variables connues de l'hôte (très verbeux)
+      ansible.builtin.debug:
+        msg: "{{ vars.keys() | select('match', '^(cfg|inventory_hostname)$') | list }}"
+
+    - name: Tester une expression Jinja
+      ansible.builtin.debug:
+        msg: "{{ cfg.hosts | map('upper') | join('-') }}"
+
+    - name: Debugger interactif sur échec (décommentez debugger pour l'essayer)
+      ansible.builtin.command: /bin/true
+      changed_when: false
+      # debugger: on_failed        # ouvre un prompt: p task, p task_vars, task.args['x']='y', redo, continue, quit

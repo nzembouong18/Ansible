@@ -1,0 +1,23 @@
+---
+# Comparer: linear (défaut), free, et serial / throttle
+#   time ansible-playbook -i inventory-multi.ini 03-strategies.yml
+#   time ansible-playbook -i inventory-multi.ini 03-strategies.yml -e strat=free
+#   time ansible-playbook -i inventory-multi.ini 03-strategies.yml -f 2        (2 forks)
+- name: Stratégies d'exécution
+  hosts: workers
+  gather_facts: false
+  strategy: "{{ strat | default('linear') }}"
+  # serial: 2                    # déploiement par lots de 2 hôtes
+  tasks:
+    - name: Tâche lente (durée dépendant de l'hôte)
+      ansible.builtin.command: "sleep {{ (play_hosts.index(inventory_hostname) % 3) + 1 }}"
+      changed_when: false
+
+    - name: Tâche rapide
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} terminé"
+
+    - name: Au plus 2 hôtes à la fois sur cette tâche (throttle)
+      ansible.builtin.command: sleep 1
+      throttle: 2
+      changed_when: false

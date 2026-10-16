@@ -1,0 +1,17 @@
+---
+plugin: ansible.builtin.constructed
+strict: false
+# variables calculées à partir d'autres variables
+compose:
+  mem_hint: cpu * 2
+  fqdn: inventory_hostname ~ '.' ~ datacenter ~ '.example.com'
+# groupes par condition Jinja
+groups:
+  big_servers: cpu >= 8
+  production: env == 'prod'
+# groupes générés depuis la valeur d'une variable
+keyed_groups:
+  - key: role
+    prefix: role
+  - key: datacenter
+    prefix: dc

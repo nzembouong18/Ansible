@@ -1,0 +1,21 @@
+---
+# ansible-inventory -i aws_ec2.yml --graph   (collection amazon.aws + boto3 + identifiants AWS)
+plugin: amazon.aws.aws_ec2
+regions: [eu-west-3]
+filters:
+  instance-state-name: running
+  "tag:Project": shop
+keyed_groups:
+  - key: tags.Role             # -> groupe role_web, role_db...
+    prefix: role
+  - key: placement.availability_zone
+    prefix: az
+hostnames:
+  - tag:Name
+  - private-ip-address
+compose:
+  ansible_host: private_ip_address
+cache: true
+cache_plugin: ansible.builtin.jsonfile
+cache_connection: /tmp/aws_inventory_cache
+cache_timeout: 300

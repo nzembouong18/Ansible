@@ -1,0 +1,11 @@
+---
+plugin: ansible.builtin.constructed
+strict: false
+use_vars_plugins: true
+compose:
+  fqdn: inventory_hostname ~ '.' ~ datacenter ~ '.example.com'
+groups:
+  big_servers: cpu | int >= 8
+keyed_groups:
+  - key: datacenter
+    prefix: dc

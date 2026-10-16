@@ -1,0 +1,10 @@
+---
+plugin: community.proxmox.proxmox
+url: https://pve.example.com:8006
+user: ansible@pve
+password: "{{ lookup('ansible.builtin.env', 'PROXMOX_PASSWORD') }}"
+validate_certs: true
+want_facts: true
+keyed_groups:
+  - key: proxmox_tags_parsed
+    prefix: tag

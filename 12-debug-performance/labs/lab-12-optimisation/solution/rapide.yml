@@ -1,0 +1,38 @@
+---
+- name: Playbook optimisé
+  hosts: workers
+  gather_facts: false
+  strategy: free
+  tasks:
+    - name: Initialiser le fichier de résultat (une seule fois)
+      ansible.builtin.file:
+        path: /tmp/lab12-resultat.txt
+        state: absent
+      run_once: true
+
+    - name: Lancer les cinq opérations en parallèle
+      ansible.builtin.command: sleep 3
+      async: 60
+      poll: 0
+      changed_when: false
+      register: jobs
+      loop: [1, 2, 3, 4, 5]
+
+    - name: Attendre la fin des opérations
+      ansible.builtin.async_status:
+        jid: "{{ item.ansible_job_id }}"
+      register: etat
+      until: etat.finished
+      retries: 40
+      delay: 1
+      loop: "{{ jobs.results }}"
+      loop_control:
+        label: "{{ item.ansible_job_id }}"
+
+    - name: Enregistrer le résultat de l'hôte
+      ansible.builtin.lineinfile:
+        path: /tmp/lab12-resultat.txt
+        line: "{{ inventory_hostname }} terminé"
+        create: true
+        mode: "0644"
+      throttle: 1

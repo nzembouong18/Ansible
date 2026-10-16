@@ -1,0 +1,7 @@
+---
+plugin: netbox.netbox.nb_inventory
+api_endpoint: https://netbox.example.com
+token: "{{ lookup('ansible.builtin.env', 'NETBOX_TOKEN') }}"
+group_by: [sites, device_roles, platforms]
+compose:
+  ansible_network_os: platform.slug

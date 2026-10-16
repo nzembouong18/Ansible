@@ -1,0 +1,8 @@
+---
+- name: Afficher les gros serveurs
+  hosts: big_servers
+  gather_facts: false
+  tasks:
+    - name: Identité
+      ansible.builtin.debug:
+        msg: "{{ fqdn }} ({{ ansible_host }}) - {{ cpu }} vCPU"

@@ -1,0 +1,8 @@
+---
+plugin: google.cloud.gcp_compute
+projects: [mon-projet-gcp]
+auth_kind: application
+zones: [europe-west9-a]
+keyed_groups:
+  - key: labels.role
+    prefix: role
