@@ -1,0 +1,9 @@
+---
+- name: Remédiation nginx
+  hosts: "{{ target_host | default('localhost') }}"
+  become: true
+  tasks:
+    - name: Redémarrer nginx
+      ansible.builtin.service:
+        name: nginx
+        state: restarted

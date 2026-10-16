@@ -1,0 +1,11 @@
+---
+ansible-navigator:
+  execution-environment:
+    enabled: false          # true + image: ee-formation:1.0 pour exécuter dans un conteneur
+  mode: stdout
+  logging:
+    level: warning
+    file: ./ansible-navigator.log
+  playbook-artifact:
+    enable: true
+    save-as: ./artifacts/{playbook_name}-{time_stamp}.json

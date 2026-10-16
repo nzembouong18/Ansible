@@ -1,0 +1,7 @@
+jmespath
+netaddr
+passlib
+boto3
+botocore
+kubernetes
+psycopg2-binary

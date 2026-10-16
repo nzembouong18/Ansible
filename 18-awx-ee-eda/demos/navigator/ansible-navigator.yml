@@ -1,0 +1,25 @@
+---
+# Placer à la racine du projet. Lancer : ansible-navigator run site.yml -m stdout   (ou en mode TUI)
+ansible-navigator:
+  ansible:
+    config:
+      path: ./ansible.cfg
+    inventory:
+      entries:
+        - ./inventory
+  execution-environment:
+    enabled: true
+    image: quay.io/ansible/creator-ee:latest      # ou votre EE : ee-formation:1.0
+    pull:
+      policy: missing
+    container-engine: podman
+    environment-variables:
+      pass:
+        - ANSIBLE_VAULT_PASSWORD_FILE
+  logging:
+    level: warning
+    file: ./ansible-navigator.log
+  mode: stdout                                    # interactive (TUI) ou stdout
+  playbook-artifact:
+    enable: true
+    save-as: ./artifacts/{playbook_name}-{time_stamp}.json

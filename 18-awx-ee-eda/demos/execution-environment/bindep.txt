@@ -1,0 +1,6 @@
+gcc [compile platform:rpm]
+python3-devel [compile platform:rpm]
+openssh-clients [platform:rpm]
+sshpass [platform:rpm]
+rsync [platform:rpm]
+git [platform:rpm]

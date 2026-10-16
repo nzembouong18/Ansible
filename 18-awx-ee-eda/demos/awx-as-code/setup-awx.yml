@@ -1,0 +1,88 @@
+---
+# Configuration AS CODE d'AWX / Ansible Automation Platform (collection awx.awx ou ansible.controller)
+#   ansible-galaxy collection install awx.awx
+#   export CONTROLLER_HOST=https://awx.example.com CONTROLLER_OAUTH_TOKEN=... (jamais en clair dans Git)
+- name: Configurer AWX par le code
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    org: Formation
+  tasks:
+    - name: Organisation
+      awx.awx.organization:
+        name: "{{ org }}"
+        state: present
+
+    - name: Identifiants SSH
+      awx.awx.credential:
+        name: ssh-ansible
+        organization: "{{ org }}"
+        credential_type: Machine
+        inputs:
+          username: ansible
+          ssh_key_data: "{{ lookup('ansible.builtin.file', '~/.ssh/id_ed25519') }}"
+      no_log: true
+
+    - name: Identifiant Vault
+      awx.awx.credential:
+        name: vault-prod
+        organization: "{{ org }}"
+        credential_type: Vault
+        inputs:
+          vault_password: "{{ lookup('ansible.builtin.env', 'VAULT_PASSWORD') }}"
+          vault_id: prod
+      no_log: true
+
+    - name: Projet Git
+      awx.awx.project:
+        name: formation-ansible
+        organization: "{{ org }}"
+        scm_type: git
+        scm_url: https://github.com/nzembouong18/Ansible.git
+        scm_branch: main
+        scm_update_on_launch: true
+
+    - name: Inventaire
+      awx.awx.inventory:
+        name: prod
+        organization: "{{ org }}"
+
+    - name: Source d'inventaire depuis le projet
+      awx.awx.inventory_source:
+        name: prod-from-git
+        inventory: prod
+        source: scm
+        source_project: formation-ansible
+        source_path: 00-lab/inventory/hosts.yml
+        overwrite: true
+        update_on_launch: true
+
+    - name: Modèle de job avec questionnaire (survey)
+      awx.awx.job_template:
+        name: Déployer nginx
+        organization: "{{ org }}"
+        project: formation-ansible
+        playbook: 08-roles/labs/lab-08-role-nginx/solution/use-nginx.yml
+        inventory: prod
+        credentials: [ssh-ansible]
+        become_enabled: true
+        ask_limit_on_launch: true
+        survey_enabled: true
+        survey_spec:
+          name: Paramètres
+          description: Paramètres du déploiement
+          spec:
+            - question_name: Port d'écoute
+              variable: nginx_port
+              type: integer
+              required: true
+              default: 80
+              min: 1
+              max: 65535
+
+    - name: Planification quotidienne
+      awx.awx.schedule:
+        name: nuit
+        unified_job_template: Déployer nginx
+        rrule: "DTSTART:20260101T020000Z RRULE:FREQ=DAILY;INTERVAL=1"

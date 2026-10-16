@@ -1,0 +1,11 @@
+---
+apiVersion: awx.ansible.com/v1beta1
+kind: AWX
+metadata:
+  name: awx-demo
+spec:
+  service_type: nodeport
+  nodeport_port: 30080
+  ee_images:
+    - name: ee-formation
+      image: quay.io/votreorg/ee-formation:1.0

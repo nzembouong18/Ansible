@@ -1,0 +1,9 @@
+---
+- name: Hello depuis ansible-navigator
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Message
+      ansible.builtin.debug:
+        msg: "Bonjour depuis un run reproductible"

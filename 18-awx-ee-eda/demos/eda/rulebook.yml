@@ -1,0 +1,37 @@
+---
+# Event-Driven Ansible : ansible-rulebook --rulebook rulebook.yml -i inventory.yml --verbose
+- name: Réagir aux alertes et webhooks
+  hosts: all
+  sources:
+    - ansible.eda.webhook:
+        host: 0.0.0.0
+        port: 5000
+    - ansible.eda.alertmanager:
+        host: 0.0.0.0
+        port: 5001
+  rules:
+    - name: Redémarrer nginx si l'alerte NginxDown se déclenche
+      condition: >-
+        event.alert.labels.alertname == "NginxDown"
+        and event.alert.status == "firing"
+      action:
+        run_playbook:
+          name: remediate_nginx.yml
+          extra_vars:
+            target_host: "{{ event.alert.labels.instance }}"
+
+    - name: Nettoyer le disque si > 90 %
+      condition: event.payload.type == "disk_usage" and event.payload.percent > 90
+      action:
+        run_job_template:
+          name: Nettoyage disque
+          organization: Formation
+          job_args:
+            extra_vars:
+              host: "{{ event.payload.host }}"
+
+    - name: Journaliser tout le reste
+      condition: event.payload is defined
+      action:
+        debug:
+          msg: "Événement non traité : {{ event.payload }}"
