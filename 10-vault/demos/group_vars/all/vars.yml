@@ -1,0 +1,6 @@
+---
+# Variables "publiques" : référencent les secrets par leur nom préfixé vault_
+db_host: db1.example.com
+db_user: app
+db_password: "{{ vault_db_password }}"
+api_token: "{{ vault_api_token }}"

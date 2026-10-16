@@ -1,0 +1,3 @@
+---
+app_env: dev
+db_password: "{{ vault_db_password }}"

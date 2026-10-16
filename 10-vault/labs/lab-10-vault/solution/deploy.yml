@@ -1,0 +1,13 @@
+---
+- name: Déployer la configuration applicative
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Écrire la configuration
+      ansible.builtin.copy:
+        dest: "/tmp/lab10-{{ app_env }}.conf"
+        content: |
+          env={{ app_env }}
+          db_password={{ db_password }}
+        mode: "0600"
+      no_log: true

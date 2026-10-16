@@ -1,0 +1,29 @@
+---
+# ansible-playbook 01-utiliser-vault.yml --vault-password-file .vault_pass_lab
+- name: Utiliser des variables chiffrées
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Le secret est disponible en clair pour Ansible (affichage masqué)
+      ansible.builtin.debug:
+        msg: "utilisateur={{ db_user }} mot de passe de {{ db_password | length }} caractères"
+
+    - name: Utiliser un secret sans le fuiter dans les logs
+      ansible.builtin.copy:
+        dest: /tmp/demo-app.conf
+        content: |
+          db_host={{ db_host }}
+          db_user={{ db_user }}
+          db_password={{ db_password }}
+        mode: "0600"
+      no_log: true
+
+    - name: Vérifier les permissions
+      ansible.builtin.stat:
+        path: /tmp/demo-app.conf
+      register: conf
+
+    - name: Afficher le mode
+      ansible.builtin.debug:
+        msg: "mode={{ conf.stat.mode }}"

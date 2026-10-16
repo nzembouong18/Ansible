@@ -1,0 +1,11 @@
+---
+- name: Secret chiffré inline
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - vars-inline.yml
+  tasks:
+    - name: Longueur du secret inline
+      ansible.builtin.debug:
+        msg: "longueur={{ inline_secret | length }}"
