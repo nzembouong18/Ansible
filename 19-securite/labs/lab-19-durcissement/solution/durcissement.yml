@@ -1,0 +1,76 @@
+---
+- name: Durcissement du labo
+  hosts: all
+  become: true
+  gather_facts: true
+  vars:
+    lab_local: false                    # true : saute les parties nécessitant des paquets/services réels
+    lab_sudo_cmds: "/usr/bin/systemctl restart app, /usr/bin/systemctl status app"
+  pre_tasks:
+    - name: Garde-fou - la clé d'accès du labo doit être présente avant de couper les mots de passe
+      ansible.builtin.stat:
+        path: "/home/{{ ansible_user | default('ansible') }}/.ssh/authorized_keys"
+      register: auth_keys
+      when: not (lab_local | bool)
+
+    - name: Refuser de poursuivre si l'accès par clé n'est pas garanti
+      ansible.builtin.assert:
+        that: auth_keys.stat.exists
+        fail_msg: "Aucune clé autorisée : durcir SSH vous enfermerait dehors"
+      when: not (lab_local | bool)
+
+  roles:
+    - role: hardening
+
+  tasks:
+    - name: Installer fail2ban
+      ansible.builtin.package:
+        name: fail2ban
+        state: present
+      when: not (lab_local | bool)
+
+    - name: Configurer la jail sshd
+      ansible.builtin.template:
+        src: jail.local.j2
+        dest: /etc/fail2ban/jail.local
+        owner: root
+        group: root
+        mode: "0644"
+      when: not (lab_local | bool)
+      notify: Redémarrer fail2ban
+
+    - name: Mises à jour de sécurité automatiques (Debian)
+      ansible.builtin.package:
+        name: unattended-upgrades
+        state: present
+      when: not (lab_local | bool) and ansible_facts['os_family'] == 'Debian'
+
+    - name: Mises à jour de sécurité automatiques (RedHat)
+      ansible.builtin.package:
+        name: dnf-automatic
+        state: present
+      when: not (lab_local | bool) and ansible_facts['os_family'] == 'RedHat'
+
+    - name: Utilisateur de déploiement
+      ansible.builtin.user:
+        name: deploy
+        shell: /bin/bash
+        password_lock: true
+
+    - name: Sudoers à privilèges minimaux
+      ansible.builtin.copy:
+        dest: /etc/sudoers.d/deploy
+        owner: root
+        group: root
+        mode: "0440"
+        content: |
+          Cmnd_Alias DEPLOY_CMDS = {{ lab_sudo_cmds }}
+          deploy ALL=(root) NOPASSWD: DEPLOY_CMDS
+        validate: /usr/sbin/visudo -cf %s
+
+  handlers:
+    - name: Redémarrer fail2ban
+      ansible.builtin.service:
+        name: fail2ban
+        state: restarted
+      when: hardening_manage_service | bool

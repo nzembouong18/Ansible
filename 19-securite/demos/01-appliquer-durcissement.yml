@@ -1,0 +1,10 @@
+---
+# Labo : ansible-playbook -i <inventaire> 01-appliquer-durcissement.yml
+# Test local sans service : -e hardening_manage_service=false
+- name: Durcissement de base
+  hosts: all
+  become: true
+  roles:
+    - role: hardening
+      vars:
+        hardening_ssh_allow_groups: []

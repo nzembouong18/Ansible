@@ -1,0 +1,43 @@
+---
+# Audit en LECTURE SEULE : produit un score de conformité (aucune modification).
+#   ansible-playbook -i <inventaire> 02-audit.yml
+- name: Audit de conformité (lecture seule)
+  hosts: all
+  become: true
+  gather_facts: true
+  check_mode: true
+  vars:
+    sshd_conf_dir: /etc/ssh/sshd_config.d
+  tasks:
+    - name: Lire la configuration SSH effective
+      ansible.builtin.command: /usr/sbin/sshd -T
+      register: sshd_effective
+      changed_when: false
+      check_mode: false
+      failed_when: false
+
+    - name: Stat des fichiers sensibles
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      loop: [/etc/shadow, /etc/passwd]
+      register: sensibles
+
+    - name: Lire login.defs
+      ansible.builtin.slurp:
+        src: /etc/login.defs
+      register: login_defs
+
+    - name: Évaluer les contrôles
+      ansible.builtin.set_fact:
+        controles:
+          - { id: SSH-01, nom: "Root login interdit", ok: "{{ 'permitrootlogin no' in sshd_effective.stdout | lower }}" }
+          - { id: SSH-02, nom: "Authentification par mot de passe désactivée", ok: "{{ 'passwordauthentication no' in sshd_effective.stdout | lower }}" }
+          - { id: SSH-03, nom: "MaxAuthTries <= 4", ok: "{{ (sshd_effective.stdout | regex_search('(?i)maxauthtries (\\d+)', '\\1') | default(['99'], true) | first | int) <= 4 }}" }
+          - { id: FS-01, nom: "/etc/shadow non lisible par tous", ok: "{{ sensibles.results[0].stat.mode in ['0640', '0600', '0000'] }}" }
+          - { id: PW-01, nom: "PASS_MAX_DAYS <= 90", ok: "{{ (login_defs.content | b64decode | regex_search('(?m)^PASS_MAX_DAYS\\s+(\\d+)', '\\1') | default(['99999'], true) | first | int) <= 90 }}" }
+
+    - name: Rapport de conformité
+      ansible.builtin.debug:
+        msg:
+          - "Score : {{ controles | selectattr('ok', 'equalto', true) | list | length }}/{{ controles | length }}"
+          - "{{ controles | map(attribute='id') | zip(controles | map(attribute='ok')) | map('join', ' = ') | list }}"

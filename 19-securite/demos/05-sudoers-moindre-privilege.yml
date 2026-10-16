@@ -1,0 +1,24 @@
+---
+# Moindre privilège : l'utilisateur de déploiement ne peut faire QUE ce dont il a besoin
+- name: Sudoers à privilèges minimaux
+  hosts: all
+  become: true
+  tasks:
+    - name: Utilisateur de déploiement
+      ansible.builtin.user:
+        name: deploy
+        shell: /bin/bash
+        password_lock: true
+
+    - name: Commandes autorisées (sudoers validé par visudo)
+      ansible.builtin.copy:
+        dest: /etc/sudoers.d/deploy
+        owner: root
+        group: root
+        mode: "0440"
+        content: |
+          # Géré par Ansible
+          Cmnd_Alias DEPLOY_CMDS = /usr/bin/systemctl restart app, /usr/bin/systemctl status app, /usr/bin/journalctl -u app
+          deploy ALL=(root) NOPASSWD: DEPLOY_CMDS
+          Defaults:deploy !requiretty, logfile=/var/log/sudo-deploy.log
+        validate: /usr/sbin/visudo -cf %s

@@ -1,0 +1,14 @@
+---
+- name: Durcir SSH
+  ansible.builtin.import_tasks: ssh.yml
+  when: hardening_ssh_enabled | bool
+  tags: [hardening_ssh]
+
+- name: Durcir le noyau et le réseau
+  ansible.builtin.import_tasks: sysctl.yml
+  when: hardening_sysctl_enabled | bool
+  tags: [hardening_sysctl]
+
+- name: Fichiers, politique de mots de passe, bannière
+  ansible.builtin.import_tasks: system.yml
+  tags: [hardening_system]

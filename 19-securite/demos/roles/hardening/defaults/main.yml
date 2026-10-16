@@ -1,0 +1,41 @@
+---
+# --- SSH ---
+hardening_ssh_enabled: true
+hardening_ssh_port: 22
+hardening_ssh_permit_root_login: "no"
+hardening_ssh_password_authentication: "no"
+hardening_ssh_allow_groups: []            # ex. [sshusers] ; vide = pas de restriction
+hardening_ssh_max_auth_tries: 3
+hardening_ssh_client_alive_interval: 300
+hardening_ssh_client_alive_count_max: 2
+hardening_ssh_config_path: /etc/ssh/sshd_config.d/10-hardening.conf
+hardening_ssh_validate_cmd: "/usr/sbin/sshd -t -f %s"
+# --- Noyau / réseau ---
+hardening_sysctl_enabled: true
+hardening_sysctl_file: /etc/sysctl.d/99-hardening.conf
+hardening_sysctl_apply: false              # true : écrit à chaud (impossible dans un conteneur sans privilèges)
+hardening_sysctl:
+  net.ipv4.conf.all.rp_filter: 1
+  net.ipv4.conf.all.accept_redirects: 0
+  net.ipv4.conf.all.send_redirects: 0
+  net.ipv4.icmp_echo_ignore_broadcasts: 1
+  net.ipv4.tcp_syncookies: 1
+  kernel.randomize_va_space: 2
+  fs.suid_dumpable: 0
+# --- Fichiers sensibles ---
+hardening_file_perms:
+  - { path: /etc/passwd, mode: "0644", owner: root, group: root }
+  - { path: /etc/group, mode: "0644", owner: root, group: root }
+  - { path: /etc/shadow, mode: "0640", owner: root, group: shadow }
+# --- Politique de mots de passe ---
+hardening_login_defs:
+  PASS_MAX_DAYS: 90
+  PASS_MIN_DAYS: 1
+  PASS_WARN_AGE: 14
+  UMASK: "027"
+# --- Divers ---
+hardening_banner_enabled: true
+hardening_banner_text: "Accès réservé aux personnes autorisées. Toute activité est journalisée."
+hardening_banner_path: /etc/issue.net
+hardening_manage_service: true             # false : n'agit pas sur les services (tests sans systemd)
+hardening_disabled_services: []            # ex. [telnet, rsh]

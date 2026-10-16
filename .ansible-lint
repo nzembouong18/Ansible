@@ -5,6 +5,7 @@ exclude_paths:
   - .git/
   - 00-lab/keys/
   - tests/
+  - 19-securite/demos/04-secrets-externes.yml
   - 18-awx-ee-eda/demos/awx-as-code/   # nécessite la collection awx.awx
   - 18-awx-ee-eda/demos/eda/rulebook.yml  # rulebook EDA, pas un playbook
   - 18-awx-ee-eda/demos/awx-install/

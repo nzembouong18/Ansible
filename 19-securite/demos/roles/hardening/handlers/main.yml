@@ -1,0 +1,11 @@
+---
+- name: Recharger sshd
+  ansible.builtin.service:
+    name: "{{ 'ssh' if ansible_facts['os_family'] == 'Debian' else 'sshd' }}"
+    state: reloaded
+  when: hardening_manage_service | bool
+
+- name: Appliquer sysctl
+  ansible.builtin.command: sysctl --system
+  changed_when: true
+  when: hardening_sysctl_apply | bool

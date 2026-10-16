@@ -1,0 +1,37 @@
+---
+- name: Permissions des fichiers sensibles
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    mode: "{{ item.mode }}"
+  loop: "{{ hardening_file_perms }}"
+  loop_control:
+    label: "{{ item.path }}"
+
+- name: Politique de mots de passe (login.defs)
+  ansible.builtin.lineinfile:
+    path: /etc/login.defs
+    regexp: "^\\s*{{ item.key }}\\b"
+    line: "{{ item.key }}\t{{ item.value }}"
+  loop: "{{ hardening_login_defs | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+
+- name: Bannière légale
+  ansible.builtin.copy:
+    dest: "{{ hardening_banner_path }}"
+    content: "{{ hardening_banner_text }}\n"
+    owner: root
+    group: root
+    mode: "0644"
+  when: hardening_banner_enabled | bool
+
+- name: Désactiver les services inutiles
+  ansible.builtin.service:
+    name: "{{ item }}"
+    state: stopped
+    enabled: false
+  loop: "{{ hardening_disabled_services }}"
+  when: hardening_manage_service | bool
+  failed_when: false

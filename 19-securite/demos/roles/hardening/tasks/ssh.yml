@@ -1,0 +1,26 @@
+---
+- name: Créer le répertoire sshd_config.d
+  ansible.builtin.file:
+    path: "{{ hardening_ssh_config_path | dirname }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: S'assurer que le répertoire de séparation de privilèges existe (requis par sshd -t)
+  ansible.builtin.file:
+    path: /run/sshd
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Déployer la configuration SSH durcie (validée par sshd -t)
+  ansible.builtin.template:
+    src: sshd_hardening.conf.j2
+    dest: "{{ hardening_ssh_config_path }}"
+    owner: root
+    group: root
+    mode: "0600"
+    validate: "{{ hardening_ssh_validate_cmd }}"
+  notify: Recharger sshd
