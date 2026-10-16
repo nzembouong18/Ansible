@@ -1,0 +1,15 @@
+---
+- name: Utiliser acme.tools
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Taille lisible
+      ansible.builtin.debug:
+        msg: "{{ 1610612736 | acme.tools.bytes_human }}"
+
+    - name: Appliquer le rôle
+      ansible.builtin.include_role:
+        name: acme.tools.banner
+      vars:
+        banner_text: "formation ansible"

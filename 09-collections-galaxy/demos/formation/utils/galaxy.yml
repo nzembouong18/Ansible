@@ -1,0 +1,15 @@
+---
+namespace: formation
+name: utils
+version: 1.0.0
+readme: README.md
+authors:
+  - Formation Ansible
+description: Collection de démonstration (filtre slugify, rôle hello).
+license:
+  - MIT
+tags: [tools, linux]
+dependencies: {}
+build_ignore:
+  - "*.tar.gz"
+repository: https://github.com/nzembouong18/Ansible

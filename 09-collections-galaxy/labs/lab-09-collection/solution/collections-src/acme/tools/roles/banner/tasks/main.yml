@@ -1,0 +1,6 @@
+---
+- name: Déposer la bannière
+  ansible.builtin.template:
+    src: banner.j2
+    dest: "{{ banner_path }}"
+    mode: "0644"

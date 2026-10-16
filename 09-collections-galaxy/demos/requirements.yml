@@ -1,0 +1,21 @@
+---
+# ansible-galaxy install -r requirements.yml      (rôles ET collections)
+# ansible-galaxy collection install -r requirements.yml -p ./collections
+collections:
+  - name: community.general
+    version: ">=9.0.0,<14.0.0"           # contrainte de version
+  - name: ansible.posix
+  - name: https://github.com/ansible-collections/community.docker.git
+    type: git
+    version: main
+  - name: formation.utils
+    source: file:///tmp/col-out/formation-utils-1.0.0.tar.gz   # tarball local
+    type: file
+
+roles:
+  - name: geerlingguy.docker               # depuis Galaxy
+    version: "7.4.0"
+  - src: https://github.com/example/ansible-role-foo.git
+    scm: git
+    version: v1.2.0
+    name: foo

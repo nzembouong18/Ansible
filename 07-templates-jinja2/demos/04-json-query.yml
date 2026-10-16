@@ -1,6 +1,6 @@
 ---
 # json_query = JMESPath (nécessite: pip install jmespath)
-- name: json_query
+- name: Utiliser json_query
   hosts: localhost
   connection: local
   gather_facts: false

@@ -1,0 +1,14 @@
+---
+namespace: acme
+name: tools
+version: 0.1.0
+readme: README.md
+authors:
+  - ACME DevOps
+description: Outils de démonstration (filtre bytes_human, rôle banner).
+license:
+  - MIT
+tags: [tools, linux]
+dependencies: {}
+build_ignore: []
+repository: https://github.com/nzembouong18/Ansible

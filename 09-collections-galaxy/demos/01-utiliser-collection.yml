@@ -1,0 +1,15 @@
+---
+- name: Utiliser la collection formation.utils
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Filtre de la collection (FQCN)
+      ansible.builtin.debug:
+        msg: "{{ 'Mon Super Site Été 2026!' | formation.utils.slugify }}"
+
+    - name: Rôle de la collection
+      ansible.builtin.include_role:
+        name: formation.utils.hello
+      vars:
+        hello_name: "formation"

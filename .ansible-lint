@@ -5,6 +5,7 @@ exclude_paths:
   - .git/
   - 00-lab/keys/
   - tests/
+  - "**/collections/"
   - "**/labs/**/enonce/"
   - "**/molecule/"
 warn_list:

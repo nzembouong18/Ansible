@@ -1,0 +1,4 @@
+---
+- name: Dire bonjour
+  ansible.builtin.debug:
+    msg: "Bonjour {{ hello_name }} (rôle de la collection formation.utils)"
