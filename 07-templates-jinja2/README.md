@@ -37,7 +37,7 @@ Ajoutez toujours un en-tête pour décourager l'édition manuelle :
 # Généré pour {{ inventory_hostname }}
 ```
 
-(`ansible_managed` est configurable dans `ansible.cfg`, ex. `ansible_managed = Géré par Ansible — ne pas modifier`.)
+(`ansible_managed` est une variable spéciale : sa valeur par défaut est « Ansible managed ». Redéfinissez-la, par ex. dans `group_vars/all`, pour un message plus explicite : `ansible_managed: "Géré par Ansible - ne pas modifier à la main"`.)
 
 ## 2. Syntaxe Jinja2
 

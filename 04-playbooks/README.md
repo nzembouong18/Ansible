@@ -170,9 +170,9 @@ Champs usuels d'un `register` : `rc`, `stdout`, `stdout_lines`, `stderr`, `chang
 
 ```yaml
 # site.yml — le "point d'entrée" classique
-- import_playbook: common.yml
-- import_playbook: db.yml
-- import_playbook: web.yml
+- ansible.builtin.import_playbook: common.yml
+- ansible.builtin.import_playbook: db.yml
+- ansible.builtin.import_playbook: web.yml
 ```
 
 Règle de pouce : **import** par défaut (prévisible, `--list-tasks` fonctionne) ; **include** si le contenu dépend d'une variable ou d'une boucle.

@@ -148,7 +148,8 @@ Ordre de recherche (le premier trouvé gagne, **pas de fusion**) :
 inventory          = ./inventory/hosts.yml
 remote_user        = ansible
 host_key_checking  = False        # labo seulement !
-stdout_callback    = yaml         # sortie lisible
+stdout_callback    = default      # sortie lisible avec result_format = yaml
+result_format      = yaml
 roles_path         = ./roles
 forks              = 10
 

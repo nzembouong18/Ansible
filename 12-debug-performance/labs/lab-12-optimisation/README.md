@@ -10,7 +10,7 @@ Partir de `lent.yml`, **mesurer**, appliquer des optimisations une par une, et d
 
 1. Copiez `lent.yml` et `inventory.ini`, puis mesurez :
    ```bash
-   ANSIBLE_CALLBACKS_ENABLED=timer,profile_tasks ansible-playbook -i inventory.ini lent.yml
+   ANSIBLE_CALLBACKS_ENABLED=ansible.builtin.timer,ansible.posix.profile_tasks ansible-playbook -i inventory.ini lent.yml
    ```
    Notez le temps total et les 3 tâches les plus longues.
 2. Créez `rapide.yml` (même résultat fonctionnel) en appliquant :

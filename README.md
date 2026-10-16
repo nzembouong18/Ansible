@@ -45,7 +45,7 @@ Pas de Docker ? La plupart des démos tournent en local :
 | 19 | [Sécurité & durcissement](19-securite/README.md) | 🔴 | 3 h | durcir et auditer |
 | 20 | [**Projet final**](20-projet-final/README.md) | 🔴 | 6-8 h | plateforme web complète |
 
-🟢 débutant · 🟡 intermédiaire · 🟠 avancé · 🔴 expert — **≈ 65 h** au total (cours + démos + labos).
+🟢 débutant · 🟡 intermédiaire · 🟠 avancé · 🔴 expert — **≈ 60 h** au total (cours + démos + labos).
 
 ## 🗓️ Parcours proposés
 

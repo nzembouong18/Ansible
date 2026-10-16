@@ -1,6 +1,6 @@
 # Module 00 — Mise en place du laboratoire
 
-> **Durée** : 30 min · **Niveau** : débutant · **Prérequis** : Docker (≥ 24) + Docker Compose v2, 4 Go de RAM libres.
+> **Durée** : 30 min · **Niveau** : débutant · **Prérequis** : Docker (≥ 24) + Docker Compose v2, le client OpenSSH (`ssh-keygen`) sur l'hôte, 4 Go de RAM libres.
 
 Tous les labos de la formation s'exécutent dans un environnement **jetable et reproductible** :
 
@@ -64,8 +64,8 @@ db1  | SUCCESS => { "changed": false, "ping": "pong" }
 
 | Option | Comment |
 |---|---|
-| **3 VM (Vagrant/VirtualBox, Multipass, libvirt)** | Une VM de contrôle + 2-3 VM cibles Ubuntu/Rocky. Adaptez `00-lab/inventory/hosts.yml` (IP, utilisateur). |
-| **Cloud gratuit/peu cher** | 3 petites instances (AWS t3.micro, Scaleway DEV1-S, Hetzner CX11). |
+| **VM (Vagrant/VirtualBox, Multipass, libvirt)** | Une VM de contrôle + 4 VM cibles Ubuntu (lb1, web1, web2, db1), éventuellement une Rocky. Adaptez `00-lab/inventory/hosts.yml` (IP, utilisateur). |
+| **Cloud gratuit/peu cher** | 5 petites instances (AWS t3.micro, Scaleway DEV1-S, Hetzner CX11). |
 | **Tout en local** | `ansible_connection=local` sur `localhost` — suffisant pour les modules 01 à 08, mais pas pour les labos multi-hôtes. |
 
 Vérifiez simplement que vous pouvez faire `ssh ansible@<hote>` sans mot de passe et `sudo` sans mot de passe.

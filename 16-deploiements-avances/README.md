@@ -17,10 +17,10 @@
 Un `site.yml` enchaîne des plays dans l'ordre métier :
 
 ```yaml
-- import_playbook: db.yml          # 1. base (migration de schéma)
-- import_playbook: app.yml         # 2. application
-- import_playbook: web.yml         # 3. frontaux + LB
-- import_playbook: smoke-tests.yml # 4. vérifications de bout en bout
+- ansible.builtin.import_playbook: db.yml          # 1. base (migration de schéma)
+- ansible.builtin.import_playbook: app.yml         # 2. application
+- ansible.builtin.import_playbook: web.yml         # 3. frontaux + LB
+- ansible.builtin.import_playbook: smoke-tests.yml # 4. vérifications de bout en bout
 ```
 
 Pour utiliser les facts d'un tier dans un autre (`hostvars[db1].ansible_facts…`), le play qui les collecte doit s'être exécuté **avant** dans la même exécution (ou cache de facts).

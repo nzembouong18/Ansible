@@ -27,7 +27,7 @@ Un playbook de 600 lignes est illisible et non réutilisable. Un **rôle** est u
 ## 2. Arborescence
 
 ```bash
-ansible-galaxy role init roles/nginx
+ansible-galaxy role init --init-path roles nginx
 ```
 
 ```

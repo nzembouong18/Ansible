@@ -126,7 +126,7 @@ Pipeline recommandé pour un dépôt Ansible :
 | 4. Déploiement préprod | merge sur main | playbook réel + smoke tests |
 | 5. Promotion prod | tag / approbation manuelle | AWX workflow avec approbation |
 
-Bonnes pratiques CI : cache pip, versions d'`ansible-core` épinglées, secrets Vault via secrets du CI, rapports JUnit (`ANSIBLE_STDOUT_CALLBACK=junit` pour la sortie xml) et conservation des artefacts.
+Bonnes pratiques CI : cache pip, versions d'`ansible-core` épinglées, secrets Vault via secrets du CI, rapports JUnit (callback `junit` : `ANSIBLE_CALLBACKS_ENABLED=junit JUNIT_OUTPUT_DIR=./reports`) et conservation des artefacts.
 
 ### pre-commit
 

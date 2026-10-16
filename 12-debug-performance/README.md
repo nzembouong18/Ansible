@@ -42,8 +42,9 @@ ansible-config dump --only-changed                # configuration effective
 # ansible.cfg
 [defaults]
 log_path = ./ansible.log
-stdout_callback = yaml                 # ou 'default' avec result_format=yaml
-callbacks_enabled = timer, profile_tasks, profile_roles
+stdout_callback = default
+result_format = yaml                   # (l'ancien callback 'yaml' n'existe plus)
+callbacks_enabled = ansible.builtin.timer, ansible.posix.profile_tasks, ansible.posix.profile_roles
 display_skipped_hosts = false
 ```
 
@@ -73,7 +74,7 @@ Prompt interactif : `p task`, `p task.args`, `p task_vars`, `p result._result`, 
 ## 2. Mesurer avant d'optimiser
 
 ```ini
-callbacks_enabled = timer, profile_tasks
+callbacks_enabled = ansible.builtin.timer, ansible.posix.profile_tasks
 ```
 
 `profile_tasks` classe les tâches par durée (top 20) ; `timer` donne le temps total. **Optimisez ce qui est mesuré, pas ce qu'on suppose.**
