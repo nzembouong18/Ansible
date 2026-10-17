@@ -3,4 +3,6 @@
 motd_message: "Serveur géré par Ansible"
 motd_owner: "equipe-infra"
 motd_path: /etc/motd
+motd_file_owner: root
+motd_file_group: root
 motd_show_facts: true

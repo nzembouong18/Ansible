@@ -3,3 +3,5 @@ common_packages: [curl, vim-tiny, htop]
 common_manage_packages: true
 common_motd: "Serveur géré par Ansible - {{ app_env | default('n/a') }}"
 common_motd_path: /etc/motd
+common_motd_owner: root
+common_motd_group: root

@@ -6,4 +6,7 @@ webapp_keep_releases: 2
 webapp_root: /tmp/projet-final/{{ inventory_hostname }}
 webapp_manage_service: false
 webapp_user: ""                 # pas de création d'utilisateur en local
+# exécution locale sans root : le motd de test appartient à l'utilisateur courant
+common_motd_owner: "{{ ansible_facts['user_id'] }}"
+common_motd_group: "{{ ansible_facts['user_gid'] }}"
 webapp_db_password: "{{ vault_webapp_db_password }}"

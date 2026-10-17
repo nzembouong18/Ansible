@@ -19,6 +19,9 @@ provisioner:
             ansible_python_interpreter: "{{ ansible_playbook_python }}"
         vars:
           motd_path: /tmp/molecule-motd
+          # exécution locale sans root (CI) : le fichier reste à l'utilisateur courant
+          motd_file_owner: "{{ ansible_facts['user_id'] }}"
+          motd_file_group: "{{ ansible_facts['user_gid'] }}"
   config_options:
     defaults:
       callbacks_enabled: ansible.posix.profile_tasks

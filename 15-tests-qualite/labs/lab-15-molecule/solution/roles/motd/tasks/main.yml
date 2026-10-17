@@ -10,7 +10,7 @@
   ansible.builtin.template:
     src: motd.j2
     dest: "{{ motd_path }}"
-    owner: root
-    group: root
+    owner: "{{ motd_file_owner }}"
+    group: "{{ motd_file_group }}"
     mode: "0644"
   notify: Journaliser le changement de motd
