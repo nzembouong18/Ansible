@@ -19,22 +19,27 @@ La réponse à « **sur quelles machines** ? ». Deux groupes implicites existen
 ### Format INI
 
 ```ini
-# inventory/hosts.ini
-mail.example.com                    ; hôte sans groupe
+# inventory/hosts.ini  (commentaires : lignes entières commençant par # ; pas de ';' en fin de ligne)
+
+# hôte sans groupe
+mail.example.com
 
 [webservers]
 web1 ansible_host=192.168.56.11
 web2 ansible_host=192.168.56.12
-web[3:5].example.com                ; plage : web3 à web5
+# plage : web3 à web5
+web[3:5].example.com
 
 [dbservers]
 db1 ansible_host=192.168.56.21 ansible_port=2222
 
-[production:children]               ; groupe de groupes
+# groupe de groupes
+[production:children]
 webservers
 dbservers
 
-[webservers:vars]                   ; variables du groupe
+# variables du groupe
+[webservers:vars]
 http_port=80
 ```
 

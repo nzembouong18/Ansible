@@ -19,6 +19,8 @@ Passer d'un score de conformité **faible** à **maximal**, de façon reproducti
 4. Prouvez l'**idempotence** (2ᵉ passage `changed=0`) et testez `--check --diff`.
 5. Ajoutez un contrôle **négatif** : modifiez `PermitRootLogin yes` dans `/etc/ssh/sshd_config.d/10-hardening.conf` à la main puis relancez : le playbook doit le corriger (dérive).
 
+> ℹ️ Si `fail2ban` refuse de démarrer (« Failed to initialize any backend for Jail 'sshd' »), c'est que le fichier `/var/log/auth.log` n'existe pas (système sans rsyslog, journald seul) : installez `rsyslog` ou ajoutez `backend = systemd` à la jail (et le paquet `python3-systemd`).
+
 ## Test local (sans labo)
 
 ```bash

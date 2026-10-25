@@ -40,7 +40,10 @@ msg: "{{ db.host }}:{{ db['port'] }}"          # les deux notations marchent
 
 ```yaml
 path: "{{ base_dir }}/app"      # OK
-path: {{ base_dir }}/app        # ERREUR YAML
+```
+
+```text
+path: {{ base_dir }}/app        # ERREUR YAML (interprété comme un dictionnaire)
 ```
 
 **Noms valides** : lettres, chiffres, `_`, ne commence pas par un chiffre. Évitez les noms réservés (`environment`, `name`, `hosts`…) et préfixez par le rôle/appli (`nginx_port` plutôt que `port`).
