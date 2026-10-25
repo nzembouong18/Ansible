@@ -96,10 +96,17 @@ Si l'utilisateur doit pouvoir le changer → `defaults`. Sinon `vars`.
 ```
 
 ```yaml
-# roles/nginx/vars/Debian.yml            # roles/nginx/vars/RedHat.yml
-nginx_package: nginx                     nginx_package: nginx
-nginx_conf_dir: /etc/nginx               nginx_conf_dir: /etc/nginx
-nginx_user: www-data                     nginx_user: nginx
+# roles/nginx/vars/Debian.yml
+__nginx_package: nginx
+__nginx_conf_dir: /etc/nginx
+__nginx_user: www-data
+```
+
+```yaml
+# roles/nginx/vars/RedHat.yml
+__nginx_package: nginx
+__nginx_conf_dir: /etc/nginx
+__nginx_user: nginx
 ```
 
 ## 5. `meta/main.yml`, dépendances & `argument_specs`
@@ -144,23 +151,37 @@ argument_specs:
 
 ## 6. Appeler un rôle
 
+a) Section `roles:` du play — exécutée **avant** `tasks:` :
+
 ```yaml
-# a) section roles: — exécuté avant tasks:
 roles:
   - nginx
   - { role: nginx, nginx_port: 8080, tags: [web] }
+```
 
-# b) import_role — statique
-- ansible.builtin.import_role: { name: nginx }
+b) `import_role` — statique (analysé au chargement) :
 
-# c) include_role — dynamique (boucle, when, nom variable)
+```yaml
+- ansible.builtin.import_role:
+    name: nginx
+```
+
+c) `include_role` — dynamique (boucle, `when`, nom variable) :
+
+```yaml
 - ansible.builtin.include_role:
     name: "{{ item }}"
-    apply: { tags: [web] }
+    apply:
+      tags: [web]
   loop: "{{ roles_to_apply }}"
+```
 
-# d) un sous-ensemble : un autre fichier de tâches du rôle
-- ansible.builtin.include_role: { name: nginx, tasks_from: vhost.yml }
+d) Un sous-ensemble : un autre fichier de tâches du rôle :
+
+```yaml
+- ansible.builtin.include_role:
+    name: nginx
+    tasks_from: vhost.yml
 ```
 
 **Recherche des rôles** : `roles/` à côté du playbook, `roles_path` d'`ansible.cfg`, `~/.ansible/roles`, `/usr/share/ansible/roles`, collections.

@@ -2,7 +2,7 @@
 # Vérifications automatiques de la formation (aucun Docker requis) :
 #   ./tests/run-checks.sh
 set -uo pipefail
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/.." || exit 1
 ROOT=$PWD
 PASS=0; FAIL=0
 ok()   { echo "  ✔ $1"; PASS=$((PASS+1)); }

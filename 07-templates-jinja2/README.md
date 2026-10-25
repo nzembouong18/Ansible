@@ -102,7 +102,7 @@ server { listen {{ port }}; server_name {{ name }}; }
 
 ### Maîtriser les espaces
 
-Par défaut Ansible active `trim_blocks` (le saut de ligne après un `{% %}` est supprimé) et `lstrip_blocks`. Utilisez `{%- -%}` pour affiner. Contrôlez toujours le rendu avec `--check --diff`.
+Par défaut le module `template` active `trim_blocks` (le saut de ligne qui suit un `{% %}` est supprimé) mais **pas** `lstrip_blocks` (les espaces avant un `{% %}` sont conservés : ne les indentez donc pas, ou passez `lstrip_blocks: true`). Utilisez `{%- -%}` pour affiner. Contrôlez toujours le rendu avec `--check --diff`.
 
 ## 3. Filtres essentiels
 
